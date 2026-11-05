@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 OldJii
+Copyright (c) 2026 folay-git
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ Typora's GitHub theme
   display rules are rewritten. github.css itself is not part of this package.
   It is distributed with Typora without a separate licence text, and its
   copyright stays with Typora and the authors of that theme. The MIT licence
-  above covers only the original work by OldJii; it does not extend to
+  above covers only the original work by folay-git; it does not extend to
   the parts derived from github.css.
 
 Fonts

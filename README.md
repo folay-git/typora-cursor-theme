@@ -1,7 +1,7 @@
 # Cursor Style
 
-[![License: MIT](https://img.shields.io/github/license/OldJii/typora-cursor-theme)](LICENSE)
-[![Latest release](https://img.shields.io/github/v/release/OldJii/typora-cursor-theme)](https://github.com/OldJii/typora-cursor-theme/releases/latest)
+[![License: MIT](https://img.shields.io/github/license/folay-git/typora-cursor-theme)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/folay-git/typora-cursor-theme)](https://github.com/folay-git/typora-cursor-theme/releases/latest)
 
 A [Typora](https://typora.io) theme in the visual language of Cursor's website: warm paper background, ink-colored text and a restrained ember orange. It starts from Typora's bundled GitHub light theme, keeps its mature typographic skeleton and native editing feel, and re-implements only the look: colors, type hierarchy and display rules. A matching dark variant, **Cursor Style Dark**, is included. Designed for technical writing and long-form reading.
 
@@ -31,7 +31,7 @@ A [Typora](https://typora.io) theme in the visual language of Cursor's website: 
 
 ## Installation
 
-1. Download [`cursor-style.zip`](https://github.com/OldJii/typora-cursor-theme/releases/latest/download/cursor-style.zip) from the latest release and unzip it. (You can also use this repository directly.)
+1. Download [`cursor-style.zip`](https://github.com/folay-git/typora-cursor-theme/releases/latest/download/cursor-style.zip) from the latest release and unzip it. (You can also use this repository directly.)
 2. In Typora, open Preferences → Appearance → Open Theme Folder.
 3. Copy `cursor-style.css`, `cursor-style-dark.css` and the whole `cursor-style/` folder into it, then restart Typora.
 4. Choose **Cursor Style** or **Cursor Style Dark** from the Themes menu. Alternatively, tick "Use a separate theme in dark mode" under Preferences → Appearance and pick a light and a dark theme.
@@ -108,4 +108,4 @@ Bug reports and pull requests are welcome. When you open an issue, please includ
 
 [MIT](LICENSE). The parts derived from Typora's bundled GitHub theme are not covered by the MIT license; see `LICENSE` for the note. The bundled fonts are licensed under the SIL OFL 1.1.
 
-The theme is published by [OldJii](https://github.com/OldJii) at [OldJii/typora-cursor-theme](https://github.com/OldJii/typora-cursor-theme).
+The theme is published by [folay-git](https://github.com/folay-git) at [folay-git/typora-cursor-theme](https://github.com/folay-git/typora-cursor-theme).
