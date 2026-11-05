@@ -97,7 +97,8 @@ cursor-style/             Shared styles (base.css) and fonts
 preview.md                Sample document (its image is in preview-assets/)
 release/cursor-style.zip  Install package: unzip into Typora's theme folder
 gallery/                  Typora Theme Gallery post, thumbnail and screenshots
-LICENSE                   MIT; GitHub theme derivation note; fonts: see cursor-style/fonts/OFL-*.txt
+LICENSE                   MIT license
+THIRD_PARTY_NOTICES.md    GitHub theme derivation note, bundled fonts (SIL OFL 1.1), trademark note
 ```
 
 ## Contributing
@@ -106,6 +107,6 @@ Bug reports and pull requests are welcome. When you open an issue, please includ
 
 ## License
 
-[MIT](LICENSE). The parts derived from Typora's bundled GitHub theme are not covered by the MIT license; see `LICENSE` for the note. The bundled fonts are licensed under the SIL OFL 1.1.
+[MIT](LICENSE). The parts derived from Typora's bundled GitHub theme and the bundled fonts are not covered by the MIT license; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The bundled fonts are licensed under the SIL OFL 1.1.
 
 The theme is published by [folay-git](https://github.com/folay-git) at [folay-git/typora-cursor-theme](https://github.com/folay-git/typora-cursor-theme).

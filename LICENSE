@@ -19,36 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-
-Third-party components and derivation
--------------------------------------
-
-Typora's GitHub theme
-
-  cursor-style/base.css is built on github.css, the "GitHub" theme that ships
-  with Typora. The document structure, block geometry and editing-related
-  rules of that theme are kept; the colours, type hierarchy, spacing and
-  display rules are rewritten. github.css itself is not part of this package.
-  It is distributed with Typora without a separate licence text, and its
-  copyright stays with Typora and the authors of that theme. The MIT licence
-  above covers only the original work by folay-git; it does not extend to
-  the parts derived from github.css.
-
-Fonts
-
-  The font files in cursor-style/fonts/ are not covered by the licence above.
-  They are Latin-only subsets distributed under the SIL Open Font License 1.1;
-  each font's copyright notice and the full licence text are in the OFL-*.txt
-  file next to it:
-
-    Inter           The Inter Project Authors
-    JetBrains Mono  The JetBrains Mono Project Authors
-    EB Garamond     The EB Garamond Project Authors
-
-Cursor
-
-  The visual design is inspired by Cursor's website. No code, fonts or images
-  from Cursor or Anysphere are included, and this project is not affiliated
-  with or endorsed by them. "Cursor" in the name only identifies the style
-  that inspired the theme; it is a trademark of its owner.
