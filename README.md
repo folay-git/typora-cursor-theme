@@ -1,101 +1,111 @@
 # Cursor Style
 
-Cursor 风格的 Typora 主题：以 Typora 自带的 GitHub 浅色主题为底，重新实现 Cursor 官网的视觉语言——暖纸色背景、墨色文字、克制的 ember 橙。保留 GitHub 主题成熟的排版骨架和 Typora 原生的编辑手感，只重新实现视觉：配色、字体层级和展示规则。另附配套暗色版 Cursor Style Dark。为中英文混排的技术写作和长文阅读而做。
+[![License: MIT](https://img.shields.io/github/license/OldJii/typora-cursor-theme)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/OldJii/typora-cursor-theme)](https://github.com/OldJii/typora-cursor-theme/releases/latest)
 
-> 社区作品，与 Anysphere / Cursor 无隶属或背书关系；名称里的“Cursor”只说明风格来源，是其所有者的商标。暗色版由同一套设计令牌推导而来，不是 Cursor 官方配色。
+A [Typora](https://typora.io) theme in the visual language of Cursor's website: warm paper background, ink-colored text and a restrained ember orange. It starts from Typora's bundled GitHub light theme, keeps its mature typographic skeleton and native editing feel, and re-implements only the look: colors, type hierarchy and display rules. A matching dark variant, **Cursor Style Dark**, is included. Designed for technical writing and long-form reading.
 
-![Cursor Style 浅色与暗色](gallery/media/theme/cursor-style/cursor-style-overview.png)
+> A community work, not affiliated with or endorsed by Anysphere / Cursor. "Cursor" in the name only identifies the style that inspired the theme, and is a trademark of its owner. The dark variant is derived from the same design tokens; it is not an official Cursor palette.
 
-## 设计
+![Cursor Style, light and dark](gallery/media/theme/cursor-style/cursor-style-overview.png)
 
-- **以 GitHub 主题为底**：文档骨架、块级几何和编辑相关规则沿用 Typora 自带的 `github.css`，光标、选区、输入法和表格、代码块的原生编辑行为不被改动；本主题只替换颜色、字体、间距和展示规则。
-- **一个版心**：正文、标题、列表、引用、代码块、表格、图片、公式和 Mermaid 共用同一个版心，默认 56rem（16 px 字号下约 896 px，一行约 56 个汉字），左右边缘对齐，没有第二个“宽栏”。比版心宽的内容留在版心里处理：代码块自动换行（关闭换行时在块内滚动），7 列及以上的表格和行间公式在框内横向滚动，图片与图表按比例缩小。窗口比版心窄时，版心随窗口收窄。
-- **纸与墨**：纸色 `#f7f7f4`、墨色 `#26251e`，橙色只用于光标、链接、焦点和当前项。品牌橙 `#f54e00` 在纸色上只有 3.3:1，文字和链接改用更深的 `#c43e00`（4.9:1）；正文与小号灰字（12.7、7.1、5.5:1）达到 AA，只有 Markdown 标记符号和专注模式的淡化文字刻意更淡。
-- **标题轻，层级清楚**：h1–h6 保持 500–600 字重，不带分隔线，靠字号、字距、颜色和间距区分层级；标题上方的空白至少是下方的两倍，让标题贴着它引出的内容，紧跟在更高一级标题下面的标题只留较小的间距。加粗和强调在视觉上能一眼分开。
-- **中文长文阅读**：正文 Inter 加系统中文字体，行高 1.8；引号、破折号和省略号交给中文字体，保持全角居中；中文标点和断行按 `line-break: strict` 处理；代码用 JetBrains Mono，引用用 EB Garamond。
-- **覆盖完整**：标题、列表、任务列表、引用、行内代码与代码块（含语法高亮）、表格、图片与题注、目录、脚注、公式、Mermaid、YAML front matter、`<details>`、查找、专注与源代码模式、侧边栏、滚动条、菜单和对话框，以及打印样式。
-- **Mermaid 随主题换色**：流程图、状态图、时序图、类图、ER 图、甘特图、饼图共用一套色板，浅色与暗色一致。
-- **只负责呈现**：纯 CSS，不含脚本、不联网。字号和版心宽度全部使用 `rem`，跟随 Typora 的字体大小设置：偏好设置 → 外观 → 字体大小保持「自动」时根字号是 16 px，本文的像素数都按这个算；选了「自定义」（比如 14 px），字号、行距和版心宽度按比例一起缩小。
+## Features
 
-## 截图
+- **Built on the GitHub theme.** The document skeleton, block geometry and editing-related rules come from Typora's bundled `github.css`, so the caret, selection, IME, and the native editing behavior of tables and code blocks are untouched. This theme only replaces colors, fonts, spacing and display rules.
+- **One text column.** Body text, headings, lists, quotes, code blocks, tables, images, math and Mermaid diagrams share a single column, `56rem` by default (about 896 px at a 16 px font size), with both edges aligned and no second "wide" column. Content wider than the column is handled inside it: code blocks wrap (or scroll inside the block when wrapping is off), tables with 7 or more columns and display math scroll horizontally within their frame, and images and diagrams scale down proportionally. In a window narrower than the column, the column narrows with it.
+- **Paper and ink.** Paper `#f7f7f4`, ink `#26251e`; orange is reserved for the caret, links, focus and the current item. The brand orange `#f54e00` has only 3.3:1 contrast on paper, so text and links use a deeper `#c43e00` (4.9:1). Body text and the small gray text (12.7, 7.1 and 5.5:1) meet WCAG AA; only Markdown markup characters and focus-mode dimmed text are deliberately fainter.
+- **Light headings, clear hierarchy.** h1–h6 stay at weights 500–600 with no divider lines; levels are told apart by size, letter-spacing, color and spacing. Space above a heading is at least twice the space below it, so a heading sits close to the content it introduces, and a heading directly under a higher-level heading gets a smaller gap. Bold and emphasis are easy to tell apart.
+- **Made for long-form reading.** Inter with system CJK fonts, line height 1.8, `line-break: strict` for CJK punctuation and line breaking, JetBrains Mono for code and EB Garamond for quotes.
+- **Complete coverage.** Headings, lists, task lists, quotes, inline code and code blocks (with syntax highlighting), tables, images with captions, table of contents, footnotes, math, Mermaid, YAML front matter, `<details>`, find, focus and source code modes, sidebar, scrollbars, menus and dialogs, and print styles.
+- **Mermaid follows the theme.** Flowcharts, state diagrams, sequence diagrams, class diagrams, ER diagrams, Gantt charts and pie charts share one palette, identical in light and dark.
+- **Presentation only.** Pure CSS: no scripts, no network access. Font sizes and column width are all in `rem`, so they follow Typora's font size setting. With Preferences → Appearance → Font Size left on "Auto" the root size is 16 px, and every pixel figure in this document assumes that; with a custom size (say 14 px), font sizes, line spacing and column width shrink proportionally.
 
-| 浅色 | 暗色 |
+## Screenshots
+
+| Light | Dark |
 |---|---|
 | ![](gallery/media/theme/cursor-style/cursor-style-light-reading.png) | ![](gallery/media/theme/cursor-style/cursor-style-dark-reading.png) |
 | ![](gallery/media/theme/cursor-style/cursor-style-light-tables-math.png) | ![](gallery/media/theme/cursor-style/cursor-style-dark-tables-math.png) |
 | ![](gallery/media/theme/cursor-style/cursor-style-light-code.png) | ![](gallery/media/theme/cursor-style/cursor-style-dark-code.png) |
 | ![](gallery/media/theme/cursor-style/cursor-style-light-diagram.png) | ![](gallery/media/theme/cursor-style/cursor-style-dark-diagram.png) |
 
-## 安装与使用
+## Installation
 
-1. 解压 `release/cursor-style.zip`（也可以直接使用本目录）。
-2. Typora → 偏好设置 → 外观 → 打开主题文件夹。
-3. 把 `cursor-style.css`、`cursor-style-dark.css` 和整个 `cursor-style/` 文件夹放进去，重启 Typora。
-4. 在「主题」菜单选择 Cursor Style 或 Cursor Style Dark。也可以在偏好设置 → 外观勾选「在深色模式下使用独立的主题」，分别指定浅色和深色主题。
+1. Download [`cursor-style.zip`](https://github.com/OldJii/typora-cursor-theme/releases/latest/download/cursor-style.zip) from the latest release and unzip it. (You can also use this repository directly.)
+2. In Typora, open Preferences → Appearance → Open Theme Folder.
+3. Copy `cursor-style.css`, `cursor-style-dark.css` and the whole `cursor-style/` folder into it, then restart Typora.
+4. Choose **Cursor Style** or **Cursor Style Dark** from the Themes menu. Alternatively, tick "Use a separate theme in dark mode" under Preferences → Appearance and pick a light and a dark theme.
 
-`preview.md` 是中英文双语样张，用到了主题处理的全部元素。其中的行内公式、上下标和高亮需要先在偏好设置 → Markdown 中开启。
+[`preview.md`](preview.md) is a sample document that uses every element the theme styles. Inline math, sub/superscript and highlight in it need to be enabled first under Preferences → Markdown.
 
-## 自定义
+## Customization
 
-在主题文件夹新建 `cursor-style.user.css`（暗色版用 `cursor-style-dark.user.css`），覆盖变量即可：
+Create `cursor-style.user.css` (or `cursor-style-dark.user.css` for the dark variant) in the theme folder and override the variables you want:
 
 ```css
 :root {
-  --cs-measure: 64rem;          /* 版心宽度，默认 56rem；想要更窄的阅读宽度可设 46rem（改版前的默认值） */
-  --cs-gutter: 2.5rem;          /* 版心与窗口边缘的间距，默认 2rem（窗口窄于 40rem 时 1.25rem） */
-  --cs-leading: 1.7;            /* 正文行高，默认 1.8 */
-  --cs-code-ligatures: normal;  /* 开启 JetBrains Mono 的编程连字，默认 none */
+  --cs-measure: 64rem;          /* text column width; default 56rem. Use 46rem for a narrower reading width */
+  --cs-gutter: 2.5rem;          /* space between the column and the window edge; default 2rem (1.25rem below 40rem windows) */
+  --cs-leading: 1.7;            /* body line height; default 1.8 */
+  --cs-code-ligatures: normal;  /* enable JetBrains Mono programming ligatures; default none */
 }
 ```
 
-字体栈用 `--cs-font-sans`、`--cs-font-serif`、`--cs-font-mono` 覆盖。全部颜色令牌（`--cs-*`）在 `cursor-style.css` 与 `cursor-style-dark.css` 顶部的 `:root` 里；滚动条滑块的常态、悬停和按下颜色是 `--cs-scrollbar`、`--cs-scrollbar-hover`、`--cs-scrollbar-active`。
+Override the font stacks with `--cs-font-sans`, `--cs-font-serif` and `--cs-font-mono`. All color tokens (`--cs-*`) are in the `:root` block at the top of `cursor-style.css` and `cursor-style-dark.css`. The scrollbar thumb colors for the normal, hover and pressed states are `--cs-scrollbar`, `--cs-scrollbar-hover` and `--cs-scrollbar-active`.
 
-Mermaid 的手绘风格（`look: handDrawn`）需要更新的 Mermaid 引擎，并要在图表内部配置，无法靠主题 CSS 实现，所以主题没有去模拟。
+Mermaid's hand-drawn look (`look: handDrawn`) needs a newer Mermaid engine and has to be configured inside the diagram itself, so it cannot be done from theme CSS and the theme does not try to imitate it.
 
-## 字体
+## Fonts
 
-Inter、EB Garamond、JetBrains Mono 以拉丁字符子集的可变字体随主题打包在 `cursor-style/fonts/`，均为 SIL OFL 1.1，许可证全文在同目录的 `OFL-*.txt`。中文一律使用系统字体（PingFang SC、微软雅黑、Noto Sans CJK SC 等）。Typora 导出 HTML 时会去掉 `@font-face`，导出的页面改用系统字体，字体栈已按此设计。
+Inter, EB Garamond and JetBrains Mono are bundled in `cursor-style/fonts/` as Latin-subset variable fonts. All three are licensed under the SIL OFL 1.1; the full license texts are in the `OFL-*.txt` files next to them. CJK text always uses system fonts (PingFang SC, Microsoft YaHei, Noto Sans CJK SC and so on). Typora strips `@font-face` rules when exporting HTML, so exported pages fall back to system fonts; the font stacks are designed with that in mind.
 
-## 兼容性
+## Compatibility
 
-| 范围 | 状态 |
+**Tested** in Typora 1.5.6 on macOS 26 (Mermaid 9.3.0), light and dark:
+
+- Reading view: front matter, h1–h6, paragraphs, lists, quotes, tables (including wide tables with horizontal scrolling), math, code blocks and Mermaid diagrams.
+- Outline sidebar, file tree and the custom scrollbars (content area, sidebar, wide tables and source code mode); the thumb's hover and pressed colors were only checked in Chromium.
+- Window widths of 1470 pt (with sidebar), 900 pt (with file tree) and 520 pt (no sidebar, light).
+- The editing states of math and HTML blocks, find, source code mode, focus mode and the dark theme in a narrow window were checked on an earlier revision. Later changes did not touch them (compared line by line against the earlier stylesheets), but they were not exercised again.
+- HTML export of the light theme, rendered in Chromium at 1100 px and 440 px wide: wide tables, Gantt, pie, ER and class diagrams.
+
+**Not verified:**
+
+| Area | Status |
 |---|---|
-| Typora 1.5.6（macOS 26），去掉 h1、h2 分隔线并重调标题间距之后 | 已在真机检查（窗口宽 1470 pt，带侧栏，字体大小「自定义 14 px」）：浅色与暗色的文档开头（front matter、h1、副标题与正文）、h2 接段落、h4、h3 接代码块、流程图前的 h2；暗色下 h2 紧跟 h3、分隔线（`---`）后的 h2；浅色下第 8 节的 h3 接段落与列表。没有重新检查：标题的编辑状态（光标在标题里时边距里的 h3–h6 标记）、窄窗口、打印 |
-| 同一版本，自绘滚动条之后、去掉标题分隔线之前 | 已在真机检查：浅色与暗色的内容区、大纲侧栏、宽表格的横向滚动条和源代码模式，取色、粗细和位置符合预期（滑块与纸色、侧栏底色的像素值与令牌一致）。滑块的悬停和按下颜色只在 Chromium 里核对过，Typora 里没能触发悬停，没有实测；文件树和搜索结果面板的滚动条套用同一条规则，没有单独看 |
-| Typora 1.5.6（macOS 26，Mermaid 9.3.0），改名并加宽版心（56rem）之后、滚动条改动之前 | 已在真机重新检查：浅色与暗色的阅读、表格、公式、代码块和流程图；侧边栏文件树与大纲；窗口宽 1470 pt（带侧栏）、900 pt（带文件树）、520 pt（无侧栏，浅色）。浅色导出的 HTML 用 Chromium 在 1100 px 和 440 px 宽度下检查了宽表格、甘特图、饼图、ER 图和类图 |
-| 同一版本，改名前（版心 46rem）已检查 | 公式与 HTML 块的编辑状态；查找；源代码模式；专注模式；暗色的窄窗口。之后样式改了名称、版心宽度、滚动条和标题（名称与版心的改动用新旧样式表逐行比对过），除滚动条和标题外没有改动这些部分，但没有在新版心下重新操作一遍 |
-| Windows、Linux | 未验证 |
-| 其他 Typora 版本（包括内置更新 Mermaid 的版本） | 未验证 |
-| PDF 与实体打印 | 打印样式已随版心重写，但没有在真机导出验证 |
-| 暗色主题的 HTML 导出（只导出了文件，没有渲染检查）、中文输入法组字、跟随系统明暗自动切换、打字机模式、拼写检查提示 | 未验证 |
+| Windows, Linux | Not verified |
+| Other Typora versions (including versions that bundle a newer Mermaid) | Not verified |
+| PDF export and physical printing | Print styles follow the text column but were not exported and checked in the app |
+| Heading edit state (the h3–h6 markers in the margin while the caret is in a heading), narrow-window headings | Not re-checked after the latest heading spacing changes |
+| HTML export of the dark theme (the file was exported but not rendered), IME composition, automatic light/dark switching, typewriter mode, spell-check hints | Not verified |
 
-## 已知限制
+## Known limitations
 
-- 饼图的图例：Typora 1.5 自带的 Mermaid 按版心宽度排布饼图，并把图例固定在圆心右侧约 238 px 处。默认版心下图例文字有约 210 px 的位置，约 12 个汉字加 `[数值]` 以内可以完整显示；版心窄于约 480 px 时（窄窗口、带侧栏的小窗口），较长的标签会被裁掉。在图表开头加一行 `%%{init: {"pie": {"useWidth": 800}}}%%` 可以整体缩放饼图，让图例放得下，代价是文字变小。
-- 表格宽窄分流（6 列及以下在版心内换行，7 列及以上按内容取宽并在框内滚动）和图片题注（图片后紧跟、只含强调的一行段落）依赖 CSS `:has()`。不支持 `:has()` 的版本里，表格在版心内换行，题注按普通段落显示。
-- HTML 导出不内嵌字体；图片保持相对路径，移动 HTML 文件后要连同图片一起移动。
-- 上面列出的七类 Mermaid 图之外，其他图类型沿用内置 neutral（浅色）或 dark（暗色）主题的配色。
-- 滚动条始终可见：主题自绘了滚动条（内容区、侧边栏、代码块、宽表格和菜单共用一种 6 px 的细滑块，颜色随明暗主题变化），所以不再跟随 macOS「滚动条显示」里的“滚动时显示”。想用回系统滚动条，删掉 `cursor-style/base.css` 里「Scrollbars」那一段即可（这段加入之前就是系统滚动条）。
-- 没有针对 Windows「一体化」窗口样式的专门适配。
+- **Pie chart legend.** The Mermaid bundled with Typora 1.5 lays out pie charts by the text column width and fixes the legend about 238 px to the right of the center. With the default column about 210 px remain for legend text, enough for a label plus its `[value]` of around a dozen characters; when the column is narrower than about 480 px (a narrow window, or a small window with a sidebar), longer labels are clipped. Adding `%%{init: {"pie": {"useWidth": 800}}}%%` as the first line of the diagram scales the whole pie so the legend fits, at the cost of smaller text.
+- **CSS `:has()`.** The table width split (6 columns or fewer wrap inside the column; 7 or more take their content width and scroll inside the frame) and image captions (an emphasis-only paragraph directly after an image) rely on `:has()`. Where it is not supported, tables wrap inside the column and captions render as ordinary paragraphs.
+- **HTML export** does not embed fonts, and images keep their relative paths, so move the images along with the HTML file.
+- **Mermaid diagram types.** Besides the seven diagram types listed above, other types keep the colors of the built-in neutral (light) or dark (dark) Mermaid theme.
+- **Scrollbars are always visible.** The theme draws its own scrollbars (one 6 px thin thumb shared by the content area, sidebar, code blocks, wide tables and menus, with colors that follow the light or dark theme), so they no longer follow the macOS "Show scroll bars: when scrolling" setting. To get the system scrollbars back, delete the "Scrollbars" section from `cursor-style/base.css`.
+- **Windows unified window style.** There is no dedicated adaptation for it.
 
-## 目录
+## Repository layout
 
 ```
-cursor-style.css          浅色主题入口：配色令牌
-cursor-style-dark.css     暗色主题入口：配色令牌
-cursor-style/             共用样式 base.css 与字体
-preview.md                双语样张（配图在 preview-assets/）
-release/cursor-style.zip  解压后放进 Typora 主题文件夹即可的安装包
-gallery/                  Typora Theme Gallery 的投稿材料（尚未提交）
-LICENSE                   MIT；GitHub 主题衍生说明；字体另见 cursor-style/fonts/OFL-*.txt
+cursor-style.css          Light theme entry point: color tokens
+cursor-style-dark.css     Dark theme entry point: color tokens
+cursor-style/             Shared styles (base.css) and fonts
+preview.md                Sample document (its image is in preview-assets/)
+release/cursor-style.zip  Install package: unzip into Typora's theme folder
+gallery/                  Typora Theme Gallery post, thumbnail and screenshots
+LICENSE                   MIT; GitHub theme derivation note; fonts: see cursor-style/fonts/OFL-*.txt
 ```
 
-## Typora Theme Gallery 材料
+## Contributing
 
-主题源码与安装包由 [OldJii](https://github.com/OldJii) 发布于 [typora-cursor-theme](https://github.com/OldJii/typora-cursor-theme)。[下载主题](https://github.com/OldJii/typora-cursor-theme/releases/latest/download/cursor-style.zip)。
+Bug reports and pull requests are welcome. When you open an issue, please include your Typora version, operating system, the theme (light or dark) and a screenshot if you can. Please keep the theme pure CSS: no scripts and no network requests.
 
-`gallery/` 保存主题库投稿文章、缩略图和展示图片；投稿状态以官方仓库的 Pull Request 为准。
+## License
 
-## 许可
+[MIT](LICENSE). The parts derived from Typora's bundled GitHub theme are not covered by the MIT license; see `LICENSE` for the note. The bundled fonts are licensed under the SIL OFL 1.1.
 
-MIT，见 `LICENSE`。派生自 Typora 自带 GitHub 主题的部分不在 MIT 授权范围内，说明见 `LICENSE`；字体为 SIL OFL 1.1。
+The theme is published by [OldJii](https://github.com/OldJii) at [OldJii/typora-cursor-theme](https://github.com/OldJii/typora-cursor-theme).

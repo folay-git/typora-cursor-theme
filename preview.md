@@ -1,69 +1,69 @@
 ---
-title: 离线优先的笔记同步
-subtitle: Offline-first sync for note-taking apps
+title: Offline-first sync for note-taking apps
+subtitle: A design note about trade-offs
 author: Cursor Style
 date: 2026-10-27
 tags: [sync, crdt, local-first]
 ---
 
-# 离线优先：笔记应用的同步设计
+# Offline-first: sync design for note-taking apps
 
-*Offline-first sync for note-taking apps —— 一份关于取舍的设计笔记。*
+*A design note about trade-offs.*
 
-这份文档同时是 **Cursor Style** 主题的预览样例：它用一个真实的技术话题，把 Typora 里常见的排版元素都用了一遍。当文章读，是设计笔记；当样例翻，是回归测试。
+This document doubles as the preview sample for the **Cursor Style** theme: it uses a real technical topic to exercise the elements you meet most often in Typora. Read it as a design note, or flip through it as a regression test.
 
 [TOC]
 
-## 1. 为什么是离线优先
+## 1. Why offline-first
 
-笔记应用最基本的承诺是：**你写下的每个字都不会丢**。地铁里网络会断，航班上根本没有信号，咖啡馆的 Wi-Fi 每隔几分钟掉一次线——而用户只是想继续写。*离线优先*（offline-first）把本地副本当作事实来源（source of truth），网络只是让各个副本趋于一致的一条可有可无的通道[^1]。
+The most basic promise of a note-taking app is: **every word you write is kept**. The network drops on the subway, there is no signal on a flight, café Wi-Fi disconnects every few minutes—and the user just wants to keep writing. *Offline-first* treats the local copy as the source of truth; the network is only an optional channel that nudges the replicas toward agreement[^1].
 
-这个选择带来三个直接后果：
+This choice has three direct consequences:
 
-1. 写入必须在本地立即完成，延迟与网络无关；
-2. 多台设备各自修改之后，系统要能收敛到同一个结果（*eventual consistency*）；
-3. 同步协议必须**幂等**、可中断、可恢复——任何一次请求都可能被重发，也可能只执行了一半。
+1. Writes must complete locally and immediately, with latency independent of the network;
+2. After several devices have edited independently, the system must converge to the same result (*eventual consistency*);
+3. The sync protocol must be **idempotent**, interruptible and resumable—any request may be sent twice, or only half executed.
 
-> 好的同步系统像一位耐心的编辑：它不会替你决定哪个版本“更对”，只负责让每一次改动都有迹可循。
+> A good sync system is like a patient editor: it does not decide which version is “more right”; it only makes sure every change leaves a trail.
 >
-> —— 设计笔记，第 3 稿
+> — Design notes, draft 3
 
-### 1.1 设计目标
+### 1.1 Design goals
 
-| 目标 | 度量 | 目标值 |
+| Goal | Measure | Target |
 | :--- | :--- | ---: |
-| 本地写入延迟 | p99，含落盘 | < 50 ms |
-| 弱网下的上传成功率 | 丢包 30%、RTT 400 ms | ≥ 99.9% |
-| 收敛时间 | 两端恢复联网后 | ≤ 3 s |
-| 单次同步的流量 | 100 条操作，gzip 后 | ≤ 32 KB |
+| Local write latency | p99, including flush to disk | < 50 ms |
+| Upload success on a poor network | 30% packet loss, 400 ms RTT | ≥ 99.9% |
+| Time to converge | after both sides are back online | ≤ 3 s |
+| Traffic per sync | 100 operations, gzip | ≤ 32 KB |
 
-### 1.2 不做什么
+### 1.2 Non-goals
 
-我们刻意**不**追求以下几件事，它们会让协议复杂一个数量级：
+We deliberately do **not** pursue the following; each would make the protocol an order of magnitude more complex:
 
-- 跨笔记的事务（一次修改多条笔记并要求原子可见）
-- 服务端读取笔记正文（端到端加密的前提）
-- 精确到字符的“实时光标”协作
-  - 这是另一类产品，需要另一套传输层
-  - 本文的方案只保证最终一致，不保证毫秒级可见
+- Cross-note transactions (changing several notes with atomic visibility)
+- Server-side reading of note bodies (a prerequisite for end-to-end encryption)
+- Character-level “live cursor” collaboration
+  - This is a different kind of product and needs a different transport layer
+  - The approach here guarantees eventual consistency only, not millisecond visibility
 
-## 2. 数据模型
+## 2. Data model
 
-每条笔记由若干**字段**组成，每次修改都被记录为一条只追加的**操作**（operation），而不是覆盖旧值。这样历史天然保留，合并也只是“把两边的操作集合并起来再排序”。
+A note is made of several **fields**, and every edit is recorded as an append-only **operation** instead of overwriting the old value. History is kept for free, and merging is just “union the operation sets from both sides and sort them”.
 
-### 2.1 时钟：谁先谁后
+### 2.1 Clocks: who came first
 
-没有全局时钟，就没有“绝对的先后”。常见的三种选择如下：
+Without a global clock there is no “absolute order”. Three common options:
 
-| 方案 | 能表达的关系 | 单条元数据大小 | 主要缺点 |
+| Approach | Relations it can express | Metadata per entry | Main drawback |
 | --- | --- | --- | --- |
-| Lamport 时钟 | 全序，但不区分并发 | 8 B | 无法发现真正的并发 |
-| 向量时钟（vector clock） | 偏序，能识别并发 | 与设备数成正比 | 设备多了以后元数据膨胀 |
-| 混合逻辑时钟（HLC）[^hlc] | 全序，接近物理时间 | 12–16 B | 依赖设备时间大体正确 |
+| Lamport clock | Total order, but concurrency is not distinguished | 8 B | Cannot detect true concurrency |
+| Vector clock | Partial order, detects concurrency | Proportional to device count | Metadata grows with many devices |
+| Hybrid logical clock (HLC)[^hlc] | Total order, close to wall-clock time | 12–16 B | Needs device clocks to be roughly right |
 
-#### 向量时钟的比较规则
+#### How vector clocks compare
 
-两个向量时钟 $V_a$ 与 $V_b$ 的关系，取决于每个分量逐一比较的结果。若所有分量都满足 $V_a[i] \le V_b[i]$，则 $a$ 发生在 $b$ 之前；若两个方向都不成立，则二者**并发**。（行内公式需要在“偏好设置 → Markdown”中开启 *Inline Math*；块级公式默认可用。）
+Two vector clocks $V_a$ and $V_b$ are related by comparing their components one by one. If every component satisfies $V_a[i] \le V_b[i]$, then $a$ happened before $b$; if neither direction holds, the two are **concurrent**. (Inline math must be enabled under Preferences → Markdown → *Inline Math*; block math works by default.)
 
 $$
 V_A = \begin{pmatrix} 3 \\ 1 \\ 0 \end{pmatrix},\quad
@@ -71,9 +71,9 @@ V_B = \begin{pmatrix} 2 \\ 2 \\ 0 \end{pmatrix}
 \;\Longrightarrow\; V_A \parallel V_B
 $$
 
-##### 为什么最终选了 HLC
+##### Why HLC won
 
-HLC 的更新规则只有几行。设本地时钟为 $(l, c)$，物理时间为 $pt$，发生本地事件时：
+The HLC update rule is only a few lines. Let the local clock be $(l, c)$ and the physical time $pt$. On a local event:
 
 $$
 \begin{aligned}
@@ -82,18 +82,18 @@ c' &= \begin{cases} c + 1 & \text{if } l' = l \\ 0 & \text{otherwise} \end{cases
 \end{aligned}
 $$
 
-###### 术语小表
+###### Glossary
 
-**HLC**：hybrid logical clock。**LWW**：last-writer-wins[^lww]。**CRDT**：conflict-free replicated data type。
+**HLC**: hybrid logical clock. **LWW**: last-writer-wins[^lww]. **CRDT**: conflict-free replicated data type.
 
-### 2.2 实体与类
+### 2.2 Entities and classes
 
-笔记不直接保存字段的值，而是通过操作间接拥有它们；每条操作都记得自己来自哪台设备。用实体关系图表示如下（示意）：
+A note does not store field values directly; it owns them indirectly through operations, and each operation remembers which device it came from. As an entity-relationship diagram (illustrative):
 
 ```mermaid
 erDiagram
-    NOTE ||--o{ OPERATION : "包含"
-    DEVICE ||--o{ OPERATION : "产生"
+    NOTE ||--o{ OPERATION : "contains"
+    DEVICE ||--o{ OPERATION : "produces"
     NOTE {
         string id PK
         string title
@@ -109,7 +109,7 @@ erDiagram
     }
 ```
 
-落到代码里，副本持有时钟和操作；删除会留下墓碑，等水位线越过它之后才能回收（示意）：
+In code, a replica holds a clock and operations; a delete leaves a tombstone that can only be reclaimed once the watermark has passed it (illustrative):
 
 ```mermaid
 classDiagram
@@ -120,108 +120,108 @@ classDiagram
     class Operation
     class Clock
     class Tombstone
-    Replica *-- Clock : 组合
-    Replica o-- Operation : 聚合
-    Operation <|-- Insert : 继承
+    Replica *-- Clock : composition
+    Replica o-- Operation : aggregation
+    Operation <|-- Insert : inheritance
     Operation <|-- Delete
-    Delete ..> Tombstone : 依赖
+    Delete ..> Tombstone : dependency
 ```
 
-## 3. 冲突怎么合并
+## 3. How conflicts merge
 
-不同类型的字段，合并方式不同。下面这张表是整个设计里最重要的一张——它决定了“用户会不会无声地丢数据”：
+Different kinds of fields merge differently. The table below is the most important one in the whole design—it decides whether users silently lose data:
 
-| 策略 | 数据结构 | 合并方式 | 离线写入 | 多端并发 | 历史保留 | 典型实现 | 元数据开销 | 学习曲线 | 备注 |
+| Strategy | Data structure | Merge rule | Offline writes | Concurrent edits | History kept | Typical use | Metadata cost | Learning curve | Notes |
 | :--- | :--- | :--- | :---: | :---: | :---: | :--- | ---: | :---: | :--- |
-| LWW 寄存器 | 单个值 + 时间戳 | 取时间戳较大者 | ✅ | ✅ | ❌ | 标题、颜色、置顶标记 | 12 B / 字段 | 低 | 简单可预测，但落败的写入会被丢弃，务必在历史里留一份 |
-| G-Counter / PN-Counter | 每设备一个槽位 | 逐槽位取最大值 | ✅ | ✅ | ✅ | 阅读计数、点赞数 | 8 B × 设备数 | 低 | 只能表示“只增”或“增减各一个计数器” |
-| OR-Set | 元素 + 唯一标签集合 | 并集，删除只移除已见标签 | ✅ | ✅ | ✅ | 标签、附件列表 | 约 24 B / 元素 | 中 | “添加优先”：并发的添加与删除，添加获胜 |
-| 序列 CRDT（RGA、Yjs 等） | 带唯一 ID 的字符序列 | 按 ID 与因果顺序交织 | ✅ | ✅ | ✅ | 笔记正文 | 约 16–30 B / 字符 | 高 | 正文必须用它，LWW 会让一方整段文字消失 |
-| 保留两份（conflict copy） | 整条记录 | 不合并，生成副本 | ✅ | ✅ | ✅ | 无法自动合并的附件 | 一整条记录 | 低 | 最诚实的兜底，代价是需要用户来收拾 |
+| LWW register | Single value + timestamp | Larger timestamp wins | ✅ | ✅ | ❌ | Title, color, pin flag | 12 B / field | Low | Simple and predictable, but the losing write is discarded—keep a copy in history |
+| G-Counter / PN-Counter | One slot per device | Per-slot maximum | ✅ | ✅ | ✅ | Read counts, likes | 8 B × devices | Low | Can only express “grow-only”, or one increment and one decrement counter |
+| OR-Set | Elements + unique tag sets | Union; a delete removes only the tags it has seen | ✅ | ✅ | ✅ | Tags, attachment lists | ~24 B / element | Medium | “Add wins”: a concurrent add and delete resolve to the add |
+| Sequence CRDT (RGA, Yjs, …) | Characters with unique IDs | Interleave by ID and causal order | ✅ | ✅ | ✅ | Note body | ~16–30 B / character | High | Required for the body; with LWW one side's whole paragraph vanishes |
+| Keep both (conflict copy) | Whole record | No merge, create a copy | ✅ | ✅ | ✅ | Attachments that cannot be merged automatically | One full record | Low | The most honest fallback; the cost is that the user has to tidy up |
 
-### 3.1 冲突概率有多高
+### 3.1 How likely is a conflict
 
-假设一个账号共有 $N$ 条笔记，两台设备在同一段离线期间各自随机修改了 $m$ 条。至少有一条被**两边同时**修改的概率，近似为：
+Suppose an account has $N$ notes, and during one offline stretch two devices each edit $m$ notes at random. The probability that at least one note is edited on **both** sides is approximately:
 
 $$
 P(\text{conflict}) = 1 - \frac{\binom{N-m}{m}}{\binom{N}{m}} \approx 1 - e^{-m^2/N}
 $$
 
-如果有 $k$ 台设备，两两之间都可能冲突，指数部分乘以 $\binom{k}{2}$ 即可。取 $N = 2000$：
+With $k$ devices, every pair can conflict; multiply the exponent by $\binom{k}{2}$. Take $N = 2000$:
 
-| 每台设备修改条数 *m* | 两台设备（精确） | 两台设备（近似） | 三台设备（近似） |
+| Edits per device *m* | Two devices (exact) | Two devices (approx.) | Three devices (approx.) |
 | ---: | ---: | ---: | ---: |
 | 5 | 1.25% | 1.24% | 3.68% |
 | 10 | 4.90% | 4.88% | 13.93% |
 | 20 | 18.29% | 18.13% | 45.12% |
 | 50 | 72.25% | 71.35% | 97.65% |
 
-结论很直接：**离线越久、设备越多，冲突就越不是“边角情况”**。把冲突当成常态来设计，比事后补救便宜得多。
+The conclusion is direct: **the longer devices stay offline and the more of them there are, the less a conflict is an edge case**. Designing for conflicts as the normal case is much cheaper than patching afterwards.
 
-## 4. 同步协议
+## 4. Sync protocol
 
-协议只有两个动作：**push** 把本地还没上传的操作发给服务端，**pull** 拿回别的设备产生的操作。服务端只负责追加与排序，**合并发生在客户端**——这样服务端不需要读懂内容，端到端加密才成立。
+The protocol has just two actions: **push** sends the local operations that have not been uploaded yet to the server, and **pull** brings back the operations produced by other devices. The server only appends and orders; **merging happens on the client**—so the server never needs to understand the content, which is what makes end-to-end encryption possible.
 
 ```mermaid
 flowchart TD
-    A([本地编辑]) --> B[写入操作日志]
-    B --> C{有网络?}
-    C -- 否 --> D[排队等待]
+    A([Local edit]) --> B[Write to operation log]
+    B --> C{Online?}
+    C -- No --> D[Queue and wait]
     D --> C
-    C -- 是 --> E[上传未同步的操作]
-    E --> F{服务端有新变更?}
-    F -- 否 --> G([完成])
-    F -- 是 --> H[拉取并合并]
-    H --> I{同一字段并发修改?}
-    I -- 否 --> G
-    I -- 是 --> J["按策略合并<br/>LWW · CRDT · 保留副本"]
+    C -- Yes --> E[Upload unsynced operations]
+    E --> F{New changes on the server?}
+    F -- No --> G([Done])
+    F -- Yes --> H[Pull and merge]
+    H --> I{Same field edited concurrently?}
+    I -- No --> G
+    I -- Yes --> J["Merge by policy<br/>LWW · CRDT · keep a copy"]
     J --> G
 ```
 
-两台设备同时离线编辑同一条笔记时，一次完整的往返大致如下：
+When two devices edit the same note offline at the same time, one full round trip looks roughly like this:
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant A as 笔记本 (Device A)
-    participant S as 同步服务
-    participant B as 手机 (Device B)
-    A->>A: 离线编辑，写入本地日志
-    B->>B: 离线编辑同一条笔记
+    participant A as Laptop (Device A)
+    participant S as Sync service
+    participant B as Phone (Device B)
+    A->>A: Edit offline, write to the local log
+    B->>B: Edit the same note offline
     A->>S: push(ops, cursor=41)
     S-->>A: ok, cursor=44
     B->>S: push(ops, cursor=41)
     S-->>B: ok, cursor=47, remote ops (42-44)
-    B->>B: 合并远端操作（按 HLC 排序）
-    Note over S,B: 服务端只追加、不改写；合并发生在客户端
+    B->>B: Merge remote operations (ordered by HLC)
+    Note over S,B: The server only appends and never rewrites; merging happens on the client
     S-->>A: pull(cursor=44)
-    A->>A: 合并 B 的操作
+    A->>A: Merge B's operations
 ```
 
-每条记录在本地经历的状态可以画成一张小小的状态机：
+The states a record goes through locally can be drawn as a small state machine:
 
 ```mermaid
 stateDiagram-v2
     [*] --> Clean
-    Clean --> Dirty: 本地修改
-    Dirty --> Syncing: 网络可用
-    Syncing --> Clean: 服务端确认
-    Syncing --> Conflict: 检测到并发修改
-    Conflict --> Dirty: 自动合并后重新上传
-    Conflict --> Review: 无法自动合并
-    Review --> Dirty: 用户选择
+    Clean --> Dirty: Local edit
+    Dirty --> Syncing: Network available
+    Syncing --> Clean: Server acknowledged
+    Syncing --> Conflict: Concurrent edit detected
+    Conflict --> Dirty: Re-upload after automatic merge
+    Conflict --> Review: Cannot merge automatically
+    Review --> Dirty: User picks
 ```
 
-## 5. 实现片段
+## 5. Implementation snippets
 
-### 5.1 TypeScript：混合逻辑时钟
+### 5.1 TypeScript: hybrid logical clock
 
 ```typescript
 // hlc.ts — Hybrid Logical Clock
 export interface Hlc {
-  wall: number;     // 物理时间，毫秒 / physical time in ms
-  counter: number;  // 同一毫秒内的逻辑计数 / logical tie-breaker
-  node: string;     // 设备 ID，用来打破完全平局
+  wall: number;     // physical time in ms
+  counter: number;  // logical tie-breaker within the same millisecond
+  node: string;     // device ID, breaks exact ties
 }
 
 export function tick(local: Hlc, now: number = Date.now()): Hlc {
@@ -245,13 +245,13 @@ export const compare = (a: Hlc, b: Hlc): number =>
 
 type Field<T> = { value: T; stamp: Hlc };
 
-/** LWW 合并：时间戳大的获胜；完全平局时 node 字典序大的获胜。 */
+/** LWW merge: the larger timestamp wins; on an exact tie the larger node ID wins. */
 export function mergeField<T>(a: Field<T>, b: Field<T>): Field<T> {
   return compare(a.stamp, b.stamp) >= 0 ? a : b;
 }
 ```
 
-### 5.2 Python：只增计数器
+### 5.2 Python: grow-only counter
 
 ```python
 from dataclasses import dataclass, field
@@ -259,7 +259,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class GCounter:
-    """只增不减的计数器：每个节点只改自己那一格，合并时逐格取最大值。"""
+    """A grow-only counter: each node edits only its own slot; merging takes the per-slot maximum."""
 
     node: str
     slots: dict[str, int] = field(default_factory=dict)
@@ -279,27 +279,27 @@ class GCounter:
 a, b = GCounter("laptop"), GCounter("phone")
 a.incr(3); b.incr(2)
 a.merge(b); b.merge(a)
-assert a.value == b.value == 5  # 合并满足交换律、结合律与幂等性
+assert a.value == b.value == 5  # merge is commutative, associative and idempotent
 ```
 
-### 5.3 SQL：只追加的操作日志
+### 5.3 SQL: append-only operation log
 
 ```sql
--- 操作日志：只追加，永不原地修改
+-- Operation log: append-only, never modified in place
 CREATE TABLE note_ops (
-  op_id      TEXT PRIMARY KEY,   -- ULID，设备本地生成
+  op_id      TEXT PRIMARY KEY,   -- ULID, generated locally on the device
   note_id    TEXT NOT NULL,
   field      TEXT NOT NULL,      -- 'title' | 'body' | 'tags' ...
   value      JSON,
   hlc_wall   INTEGER NOT NULL,
   hlc_count  INTEGER NOT NULL,
   device_id  TEXT NOT NULL,
-  synced_at  INTEGER             -- NULL 表示尚未上传
+  synced_at  INTEGER             -- NULL means not uploaded yet
 );
 
 CREATE INDEX idx_ops_pending ON note_ops (synced_at) WHERE synced_at IS NULL;
 
--- 取每个字段的最新值（LWW）
+-- Latest value of each field (LWW)
 SELECT note_id, field, value
 FROM (
   SELECT *, ROW_NUMBER() OVER (
@@ -311,28 +311,28 @@ FROM (
 WHERE rn = 1;
 ```
 
-### 5.4 Shell、JSON 与 YAML
+### 5.4 Shell, JSON and YAML
 
-调试时最常用的几条命令：
+The commands used most often when debugging:
 
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
 
-# 本地还有多少操作没有上传？
+# How many operations are still not uploaded?
 sqlite3 notes.db "SELECT COUNT(*) FROM note_ops WHERE synced_at IS NULL;"
 
-# 模拟弱网：延迟 400 ms、丢包 30%（需要 root）
+# Simulate a poor network: 400 ms delay, 30% packet loss (needs root)
 sudo tc qdisc add dev eth0 root netem delay 400ms loss 30%
 
-# 带幂等键重放一次上传：服务端应返回 200，且不产生重复数据
+# Replay an upload with an idempotency key: the server should return 200 and create no duplicates
 curl -sS -X POST "https://sync.example.com/v1/push" \
   -H "Idempotency-Key: $(uuidgen)" \
   -H "Content-Type: application/json" \
   --data @payload.json | jq '.cursor'
 ```
 
-一次 push 的载荷与服务端回应：
+The payload of one push and the server's reply:
 
 ```json
 {
@@ -342,7 +342,7 @@ curl -sS -X POST "https://sync.example.com/v1/push" \
       "id": "01JC3W8YXN0E7ZK9P5M2H4D6F8",
       "note": "n_8f3a",
       "field": "title",
-      "value": "周会纪要 · Weekly sync",
+      "value": "Weekly sync notes",
       "hlc": { "wall": 1793064600000, "counter": 2, "node": "laptop" }
     }
   ],
@@ -351,7 +351,7 @@ curl -sS -X POST "https://sync.example.com/v1/push" \
 }
 ```
 
-客户端配置：
+Client configuration:
 
 ```yaml
 sync:
@@ -364,14 +364,14 @@ sync:
     base: 500ms
     cap: 60s
   conflict:
-    default: lww        # 单值字段 / single-value fields
-    text: crdt          # 正文用序列 CRDT / body uses a sequence CRDT
-    keep_loser: true    # 落败的版本保留在历史里
+    default: lww        # single-value fields
+    text: crdt          # the body uses a sequence CRDT
+    keep_loser: true    # losing versions stay in history
 ```
 
-### 5.5 Diff 与前端片段
+### 5.5 Diff and front-end snippets
 
-给 push 加上幂等键，只需要一处小改动：
+Adding an idempotency key to push takes one small change:
 
 ```diff
 @@ -18,4 +18,8 @@ export async function push(ops: Op[]) {
@@ -386,12 +386,12 @@ sync:
  }
 ```
 
-界面上只需要一枚安静的状态徽标，别抢走用户的注意力：
+The UI only needs a quiet status badge that does not steal the user's attention:
 
 ```html
 <div class="sync-badge" data-state="offline" role="status" aria-live="polite">
   <span class="dot"></span>
-  离线 · 3 项更改待同步
+  Offline · 3 changes waiting to sync
 </div>
 ```
 
@@ -407,57 +407,57 @@ sync:
 .sync-badge[data-state="offline"] .dot { background: #c43e00; }
 ```
 
-## 6. 上线清单
+## 6. Launch checklist
 
-- [x] 本地操作日志与 HLC
-- [x] push / pull 与幂等键
-- [ ] 弱网压测（丢包 30%、延迟 400 ms）
-  - [x] 单设备
-  - [ ] 双设备并发编辑
-  - [ ] 三设备，其中一台时钟偏快 10 分钟
-- [ ] 墓碑与垃圾回收
-- [ ] 灰度与回滚预案
+- [x] Local operation log and HLC
+- [x] push / pull and idempotency keys
+- [ ] Poor-network stress test (30% packet loss, 400 ms delay)
+  - [x] Single device
+  - [ ] Two devices editing concurrently
+  - [ ] Three devices, one with a clock 10 minutes fast
+- [ ] Tombstones and garbage collection
+- [ ] Staged rollout and rollback plan
 
-灰度计划（示意，日期为演示数据）：
+Rollout plan (illustrative; the dates are demo data):
 
 ```mermaid
 gantt
-    title 灰度计划（示意）
+    title Rollout plan (illustrative)
     dateFormat  YYYY-MM-DD
     axisFormat  %m-%d
-    section 设计
-    数据模型与时钟     :done,   d1, 2026-10-12, 7d
-    协议与幂等约定     :done,   d2, after d1, 5d
-    section 实现
-    本地日志与合并     :active, i1, 2026-10-26, 10d
-    推送 / 拉取        :        i2, after i1, 7d
-    section 发布
-    内部灰度 5%        :        r1, 2026-11-16, 7d
-    全量               :        r2, after r1, 3d
+    section Design
+    Data model and clocks        :done,   d1, 2026-10-12, 7d
+    Protocol and idempotency     :done,   d2, after d1, 5d
+    section Implementation
+    Local log and merge          :active, i1, 2026-10-26, 10d
+    Push / pull                  :        i2, after i1, 7d
+    section Release
+    Internal rollout 5%          :        r1, 2026-11-16, 7d
+    Everyone                     :        r2, after r1, 3d
 ```
 
-演练中观察到的冲突类型分布如下（模拟数据）：
+The distribution of conflict types observed in rehearsals (simulated data):
 
 ```mermaid
 pie showData
-    title 冲突类型 / Simulated conflict types
-    "同字段并发编辑" : 46
-    "删除与编辑" : 21
-    "重命名与编辑" : 18
-    "移动" : 15
+    title Simulated conflict types
+    "Same-field edits" : 46
+    "Delete vs. edit" : 21
+    "Rename vs. edit" : 18
+    "Move" : 15
 ```
 
-## 7. 取舍与反思
+## 7. Trade-offs and reflections
 
-**时钟不可信。** 一台时间被调快一年的设备，会在 LWW 里永远获胜：它写下的每个值，都比其他设备“更新”。常见的防线有两道——服务端拒绝 `wall > server_now + 5 min` 的操作；客户端在 `receive` 时也做同样的钳制，并把异常设备标记出来给用户看。这类防线没有技术含量，却最容易被遗忘。
+**Clocks cannot be trusted.** A device whose clock is set a year ahead will win every time under LWW: every value it writes looks “newer” than what the other devices wrote. There are two usual defenses—the server rejects operations with `wall > server_now + 5 min`; the client applies the same clamp in `receive` and flags the odd device to the user. These defenses are not technically interesting, yet they are the easiest to forget.
 
-**墓碑要有回收线。** 删除不能真的删除，否则离线很久的设备回来后会让已删除的笔记“复活”。所以删除只是写入一条*墓碑*（tombstone）。墓碑什么时候能回收？当所有活跃设备都确认看过它——也就是水位线（watermark）越过它之后。久未上线的设备需要被明确地“踢出”集合，否则墓碑会无限增长。
+**Tombstones need a collection line.** A delete cannot really delete, or a device that has been offline for a long time will resurrect deleted notes when it returns. So a delete only writes a *tombstone*. When can a tombstone be collected? Once every active device has acknowledged seeing it—that is, once the watermark has passed it. Devices that stay offline for a long time must be explicitly dropped from the set, or tombstones grow without bound.
 
-**端到端加密改变了分工。** 服务端看不到正文，就不可能替客户端合并；它只能保证操作的**全局顺序**与**不丢**。这对协议是约束，也是福利：服务端因此极其简单，几乎没有业务逻辑可出错。
+**End-to-end encryption changes the division of labor.** If the server cannot see the body, it cannot merge on the client's behalf; it can only guarantee the **global order** of operations and that none are **lost**. That is a constraint on the protocol and also a gift: the server stays extremely simple, with almost no business logic to get wrong.
 
-**正文别偷懒。** 标题、颜色、置顶标记用 LWW 足够好。正文不行：两个人各改了同一段的不同位置，LWW 会让其中一方的整段文字凭空消失。正文需要序列 CRDT，代价是元数据更大、实现更难；Yjs、Automerge 这类成熟的库值得直接采用，而不是自己从头写。
+**Don't cut corners on the body.** LWW is good enough for titles, colors and pin flags. It is not good enough for the body: when two people edit different places in the same paragraph, LWW makes one side's whole paragraph vanish. The body needs a sequence CRDT, at the price of larger metadata and a harder implementation; mature libraries such as Yjs and Automerge are worth adopting instead of writing your own.
 
-### 7.1 Summary in English
+### 7.1 Summary
 
 Offline-first means the local replica is the source of truth. Writes land on disk first and are shipped later; the server only *orders* operations, so merging happens on the clients. Use last-writer-wins for single-value fields, a sequence CRDT for the note body, and keep a conflict copy as the honest fallback.
 
@@ -465,81 +465,81 @@ Offline-first means the local replica is the source of truth. Writes land on dis
 
 The hardest bugs are not in the merge function. They live in clocks that lie, tombstones that never die, and retries that arrive twice.
 
-## 8. 排印自测
+## 8. Typography self-test
 
-中英文、数字与标点混排，是长文阅读里最容易出问题的地方。下面这些句子故意写得“不友好”：
+Numbers, units and punctuation are where long-form reading most often goes wrong. The sentences below are deliberately unfriendly:
 
-在 macOS 26.0 上运行 `npm install` 约需 3.5 秒，占用 128 MB 内存；套餐 ¥199.00/月（约合 $27.5），2026-10-27 起生效，时段为 09:30–18:00，比例 3:2，准确率 99.9%。化学式 H<sub>2</sub>O，面积 5 m<sup>2</sup>，版本号 v1.5.6。
+Running `npm install` on macOS 26.0 takes about 3.5 seconds and 128 MB of memory; the plan costs $199.00/month (about €183), effective 2026-10-27, for the 09:30–18:00 window, at a 3:2 ratio and 99.9% accuracy. Chemical formula H<sub>2</sub>O, area 5 m<sup>2</sup>, version v1.5.6.
 
-中文引号“像这样”，单引号‘像这样’，括号（全角）与 (half-width)，书名号《设计数据密集型应用》，破折号——像这样，省略号……像这样。English “curly quotes” and 'straight quotes', an em-dash — and an en-dash 1–10, plus a non-breaking hyphen in Wi‑Fi.
+English “curly quotes” and 'straight quotes', ‘single curly quotes’, parentheses (like this) and [brackets], the book title *Designing Data-Intensive Applications*, an em-dash — like this, an en-dash 1–10, an ellipsis… like this, and a non-breaking hyphen in Wi‑Fi.
 
-快捷键：保存是 <kbd>⌘</kbd> + <kbd>S</kbd>，命令面板是 <kbd>⌘</kbd> + <kbd>⇧</kbd> + <kbd>P</kbd>；Windows 上对应 <kbd>Ctrl</kbd> + <kbd>S</kbd>。重点内容可以用 <mark>高亮</mark>，也可以用 <u>下划线</u>，还可以用 ~~删除线~~ 表示已经作废；**粗体**、*强调*、***粗体加强调*** 与 `行内代码` 必须能一眼区分。
+Shortcuts: save with <kbd>⌘</kbd> + <kbd>S</kbd> and open the command palette with <kbd>⌘</kbd> + <kbd>⇧</kbd> + <kbd>P</kbd>; on Windows use <kbd>Ctrl</kbd> + <kbd>S</kbd>. Key points can be <mark>highlighted</mark> or <u>underlined</u>, and ~~struck through~~ once obsolete; **bold**, *emphasis*, ***bold emphasis*** and `inline code` must be distinguishable at a glance.
 
-链接有三种写法：行内的 [Mermaid 文档](https://mermaid.js.org/)，引用式的 [Typora][typora] 与 [CRDT 资料站][crdt]，以及直接写出的 <https://typora.io>。
+There are three ways to write a link: inline, like the [Mermaid documentation](https://mermaid.js.org/); reference-style, like [Typora][typora] and the [CRDT resource site][crdt]; and written out directly, <https://typora.io>.
 
-### 8.1 配色
+### 8.1 Palette
 
-下面这张图是 Cursor Style 亮色主题的配色。图片后面紧跟的一行强调文字，会被当作图注排版。
+The image below shows the Cursor Style light palette. The emphasized line right after an image is typeset as its caption.
 
-![Cursor Style 亮色配色：Parchment、Bone、Linen、Stone、Ink、Ember 与文字用 Ember](preview-assets/palette.svg)
+![Cursor Style light palette: Parchment, Bone, Linen, Stone, Ink, Ember and text Ember](preview-assets/palette.svg)
 
-*图 1：纸张与墨色构成骨架，橙色只用于链接、强调与焦点。*
+*Figure 1: Paper and ink form the skeleton; orange is used only for links, emphasis and focus.*
 
-### 8.2 多层嵌套
+### 8.2 Deep nesting
 
-1. 第一层有序列表
-   - 第二层无序列表
-     1. 第三层有序列表，文字稍长一些，用来观察折行后的缩进是否整齐：当一行放不下时，续行应与首行文字对齐，而不是退回到序号下面
-        - 第四层无序列表
-2. 回到第一层，混入代码块：
+1. First-level ordered list
+   - Second-level unordered list
+     1. Third-level ordered list, with slightly longer text so you can check that wrapped lines stay aligned: when a line does not fit, the continuation should line up with the first line's text rather than falling back under the number
+        - Fourth-level unordered list
+2. Back to the first level, with a code block:
 
    ```bash
-   echo "代码块也可以放在列表里"
+   echo "Code blocks can live inside lists too"
    ```
 
-3. 以及一段引用：
+3. And a quote:
 
-   > 列表里的引用应当与外层引用有所区别。
+   > A quote inside a list should look different from an outer quote.
    >
-   > > 再嵌套一层，边线应当更淡。
+   > > One more level; the edge line should be lighter.
 
 <details>
-<summary>展开：关于 HTML 块</summary>
-<p>Typora 会把 <code>&lt;details&gt;</code> 当作 HTML 块渲染。这里的文字与正文使用同一套排印。</p>
+<summary>Expand: about HTML blocks</summary>
+<p>Typora renders <code>&lt;details&gt;</code> as an HTML block. The text here uses the same typography as the body.</p>
 </details>
 
-### 8.3 边界情况
+### 8.3 Edge cases
 
-一个很长的链接，不应该撑破版心：<https://example.com/a/very/long/path/that/keeps/going/and/going/and/going/until/it/must/wrap/somewhere/reasonable?query=string&another=parameter&yet-another=value#fragment>
+A very long link should not break the text column: <https://example.com/a/very/long/path/that/keeps/going/and/going/and/going/until/it/must/wrap/somewhere/reasonable?query=string&another=parameter&yet-another=value#fragment>
 
-一个很长的、没有空格的单词：Pneumonoultramicroscopicsilicovolcanoconiosis_Pneumonoultramicroscopicsilicovolcanoconiosis_Pneumonoultramicroscopicsilicovolcanoconiosis。
+A very long word without spaces: Pneumonoultramicroscopicsilicovolcanoconiosis_Pneumonoultramicroscopicsilicovolcanoconiosis_Pneumonoultramicroscopicsilicovolcanoconiosis.
 
-下面是一行很长的命令。开启“代码块不自动换行”时应出现横向滚动条，默认情况下会自动折行：
+Below is a very long command. With “no wrapping in code blocks” enabled a horizontal scrollbar should appear; by default it wraps:
 
 ```bash
 curl -X POST https://sync.example.com/v1/push -H "Authorization: Bearer $TOKEN" -H "Idempotency-Key: 6f9619ff-8b86-d011-b42d-00c04fc964ff" -H "Content-Type: application/json" -H "X-Client: ember-notes/2.7.1 (macOS 26.0; arm64)" --data-binary @ops-2026-10-27T09-30-00Z.ndjson --compressed --retry 5 --retry-all-errors --max-time 30
 ```
 
-没有指定语言的代码块：
+A code block with no language specified:
 
 ```
 plain text, no language
   indentation   is   preserved
 ```
 
-下面这张图故意指向一个不存在的文件，用来检查加载失败时的样子：
+The image below deliberately points to a missing file, to check what a load failure looks like:
 
-![故意缺失的图片](preview-assets/missing.png)
+![Deliberately missing image](preview-assets/missing.png)
 
 ---
 
-## 参考与脚注
+## References and footnotes
 
-文档末尾的引用定义与脚注，用来检查页脚区域的排版。
+The reference definitions and footnotes at the end of the document, to check the footer area.
 
-[^1]: 参见 Ink & Switch 的文章 [Local-first software](https://www.inkandswitch.com/local-first/)（2019），它提出了本地优先软件应当满足的七条理想。
-[^hlc]: Kulkarni 等人，*Logical Physical Clocks*（2014）。HLC 既保留了物理时间的可读性，又保证因果顺序。
-[^lww]: LWW 即 last-writer-wins。简单、可预测，但会无声地丢弃落败的写入，所以只适合“单值字段”。
+[^1]: See Ink & Switch's article [Local-first software](https://www.inkandswitch.com/local-first/) (2019), which sets out seven ideals for local-first software.
+[^hlc]: Kulkarni et al., *Logical Physical Clocks* (2014). HLC keeps the readability of physical time while guaranteeing causal order.
+[^lww]: LWW is last-writer-wins. Simple and predictable, but it silently discards the losing write, so it only suits single-value fields.
 
 [typora]: https://typora.io "Typora — a minimal Markdown editor"
 [crdt]: https://crdt.tech/

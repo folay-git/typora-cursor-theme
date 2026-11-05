@@ -31,8 +31,9 @@
    Inter and Garamond deliberately stop short of the punctuation that Chinese
    text sets differently: curly quotes, the em dash, the ellipsis, the middle
    dot and circled numbers. Those code points fall through to the CJK font in
-   the stack, so “引号”、——破折号 and …… come out full-width and centred as
-   Chinese typography expects, instead of as narrow Latin glyphs.
+   the stack, so Chinese quotation marks, dashes and ellipses come out
+   full-width and centred as Chinese typography expects, instead of as narrow
+   Latin glyphs.
    -------------------------------------------------------------------------- */
 @font-face {
   font-family: "CS Inter";
