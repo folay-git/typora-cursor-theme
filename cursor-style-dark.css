@@ -1,0 +1,127 @@
+/*
+ * Author: OldJii <mail@folay.top>
+ * https://github.com/OldJii/typora-cursor-theme ==========================================================================
+   Cursor Style Dark — companion dark theme
+   The dark palette is derived by the theme author from the light one; it is
+   not an official Cursor palette. Same structure as the light theme, which is
+   a re-skin of Typora's bundled GitHub theme. Community work, not affiliated
+   with or endorsed by Anysphere / Cursor; the name only says which style
+   inspired it. MIT licensed (see LICENSE for the GitHub-theme notice).
+   Shared rules live in cursor-style/base.css.
+   ========================================================================== */
+@import "cursor-style/base.css";
+
+:root {
+  color-scheme: dark;
+
+  /* Surfaces: ink-coloured paper in layers */
+  --cs-paper: #1e1d19;
+  --cs-surface: #26251e;
+  --cs-surface-2: #302f27;
+  --cs-sidebar: #191814;
+  --cs-hover: rgba(247, 247, 244, 0.06);
+  --cs-active: rgba(247, 247, 244, 0.1);
+  --cs-line: rgba(247, 247, 244, 0.1);
+  --cs-line-strong: rgba(247, 247, 244, 0.18);
+  --cs-stone: #4a493f;
+  --cs-shade: rgba(0, 0, 0, 0.5);
+
+  /* Scrollbar thumb: translucent paper, so one value reads on every dark
+     layer. The track is always transparent. */
+  --cs-scrollbar: rgba(247, 247, 244, 0.24);
+  --cs-scrollbar-hover: rgba(247, 247, 244, 0.4);
+  --cs-scrollbar-active: rgba(247, 247, 244, 0.56);
+
+  /* Ink. Contrast on #1e1d19: text 13.4, ink-2 9.1, ink-3 6.4 (all AA);
+     ink-4 is for markup characters and other non-text decoration. */
+  --cs-ink: #f7f7f4;
+  --cs-text: #e6e5e0;
+  --cs-ink-2: #c0bfb7;
+  --cs-ink-3: #a09f97;
+  --cs-ink-4: #77766d;
+
+  /* Ember, lifted for dark paper (6.3:1) */
+  --cs-accent: #ff6a2b;
+  --cs-accent-text: #ff7438;
+  --cs-accent-hover: #ff9460;
+  --cs-accent-soft: rgba(255, 116, 56, 0.14);
+  --cs-accent-line: rgba(255, 116, 56, 0.45);
+  --cs-caret: #ff6a2b;
+
+  /* Selection, highlight, search */
+  --cs-selection: rgba(139, 196, 248, 0.32);
+  --cs-mark: rgba(224, 168, 80, 0.3);
+  --cs-hit: rgba(224, 168, 80, 0.3);
+  --cs-hit-active: rgba(255, 116, 56, 0.45);
+  --cs-tooltip: #f7f7f4;
+  --cs-on-tooltip: #1e1d19;
+
+  /* Status */
+  --cs-ok: #74c9a0;
+  --cs-warn: #e0a850;
+  --cs-danger: #f2708f;
+  --cs-info: #72b7d6;
+
+  /* Diagram fills: ember, forest, amber, crimson, stone and ash, deepened
+     into the dark paper (light text on every one stays above 4.9:1); --cs-note
+     is the sticky-note fill of sequence diagrams */
+  --cs-viz-1: #a54b24;
+  --cs-viz-2: #32634e;
+  --cs-viz-3: #856634;
+  --cs-viz-4: #92364d;
+  --cs-viz-5: #53524b;
+  --cs-viz-6: #67665d;
+  --cs-note: #473a24;
+
+  /* Syntax (all >= 4.5:1 on #26251e) */
+  --cs-syn-keyword: #f2708f;
+  --cs-syn-string: #74c9a0;
+  --cs-syn-number: #e0a850;
+  --cs-syn-def: #72b7d6;
+  --cs-syn-builtin: #f2935f;
+  --cs-syn-comment: #908f86;
+
+  /* Checkbox tick, painted in the dark paper colour */
+  --cs-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.4 8.6l3 3 6.2-7.2' fill='none' stroke='%231e1d19' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+
+  /* ---- Typora variables ---- */
+  --bg-color: var(--cs-paper);
+  --text-color: var(--cs-text);
+  --select-text-bg-color: var(--cs-selection);
+  --select-text-font-color: var(--cs-ink);
+  --monospace: var(--cs-font-mono);
+  --side-bar-bg-color: var(--cs-sidebar);
+  --control-text-color: var(--cs-ink-2);
+  --control-text-hover-color: var(--cs-ink);
+  --item-hover-bg-color: var(--cs-hover);
+  --item-hover-text-color: var(--cs-ink);
+  --active-file-bg-color: var(--cs-active);
+  --active-file-text-color: var(--cs-ink);
+  --active-file-border-color: var(--cs-accent);
+  --window-border: 1px solid var(--cs-line);
+  --window-border-color: var(--cs-line);
+  --border-color: var(--cs-line);
+  --panel-border-color: var(--cs-line-strong);
+  --table-border-color: var(--cs-line-strong);
+  --rawblock-edit-panel-bd: var(--cs-surface);   /* a background, painted in nested layers: keep it opaque */
+  --primary-color: var(--cs-accent-text);
+  --primary-btn-border-color: var(--cs-ink);
+  --primary-btn-text-color: var(--cs-paper);
+  --md-char-color: var(--cs-ink-4);
+  --meta-content-color: var(--cs-ink-3);
+  --blur-text-color: #5e5d55;
+  --focus-ring-color: var(--cs-accent);
+  --hint-color: var(--cs-ink-3);
+  --heading-char-color: var(--cs-ink-4);
+  --drag-placeholder-color: var(--cs-accent);
+  --search-select-bg-color: var(--cs-hit-active);
+  --search-select-text-color: var(--cs-ink);
+  --active-toggle-btn-color: var(--cs-surface-2);
+  --color-popover-bg-color: var(--cs-paper);
+  --side-bar-menu-active-tint: var(--cs-hover);
+
+  /* ---- Mermaid: built-in dark theme as the base, palette applied in
+     base.css (section 11) from the tokens above ---- */
+  --mermaid-theme: dark;
+  --node-fill: #26251e;
+}

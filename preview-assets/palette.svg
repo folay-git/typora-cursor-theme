@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 196" role="img" aria-label="Cursor Style light palette: parchment, bone, linen, stone, ink, ember and text-safe ember">
+  <rect width="720" height="196" fill="#f7f7f4"/>
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif">
+    <text x="32" y="30" font-size="11" letter-spacing="1.2" fill="#66655d">CURSOR STYLE &#183; LIGHT PALETTE</text>
+
+    <rect x="32"  y="48" width="72" height="72" rx="6" fill="#f7f7f4" stroke="#26251e" stroke-opacity="0.18"/>
+    <rect x="128" y="48" width="72" height="72" rx="6" fill="#f2f1ed" stroke="#26251e" stroke-opacity="0.1"/>
+    <rect x="224" y="48" width="72" height="72" rx="6" fill="#e6e5e0"/>
+    <rect x="320" y="48" width="72" height="72" rx="6" fill="#cdcdc9"/>
+    <rect x="416" y="48" width="72" height="72" rx="6" fill="#26251e"/>
+    <rect x="512" y="48" width="72" height="72" rx="6" fill="#f54e00"/>
+    <rect x="608" y="48" width="72" height="72" rx="6" fill="#c43e00"/>
+
+    <g font-size="12" font-weight="600" fill="#26251e">
+      <text x="32"  y="144">Parchment</text>
+      <text x="128" y="144">Bone</text>
+      <text x="224" y="144">Linen</text>
+      <text x="320" y="144">Stone</text>
+      <text x="416" y="144">Ink</text>
+      <text x="512" y="144">Ember</text>
+      <text x="608" y="144">Ember text</text>
+    </g>
+    <g font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#66655d">
+      <text x="32"  y="162">#f7f7f4</text>
+      <text x="128" y="162">#f2f1ed</text>
+      <text x="224" y="162">#e6e5e0</text>
+      <text x="320" y="162">#cdcdc9</text>
+      <text x="416" y="162">#26251e</text>
+      <text x="512" y="162">#f54e00</text>
+      <text x="608" y="162">#c43e00</text>
+    </g>
+  </g>
+</svg>

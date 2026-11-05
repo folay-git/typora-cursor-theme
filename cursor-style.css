@@ -1,0 +1,129 @@
+/*
+ * Author: OldJii <mail@folay.top>
+ * https://github.com/OldJii/typora-cursor-theme ==========================================================================
+   Cursor Style — a Typora theme in the visual language of Cursor's website (light)
+   A re-skin of Typora's bundled GitHub theme. Community work, not affiliated
+   with or endorsed by Anysphere / Cursor; the name only says which style
+   inspired it. MIT licensed (see LICENSE for the GitHub-theme notice).
+   Shared rules live in cursor-style/base.css.
+   ========================================================================== */
+@import "cursor-style/base.css";
+
+:root {
+  color-scheme: light;
+
+  /* Paper and surfaces */
+  --cs-paper: #f7f7f4;
+  --cs-surface: #f2f1ed;
+  --cs-surface-2: #e6e5e0;
+  --cs-sidebar: #f2f1ed;
+  --cs-hover: rgba(38, 37, 30, 0.055);
+  --cs-active: rgba(38, 37, 30, 0.09);
+  --cs-line: rgba(38, 37, 30, 0.1);
+  --cs-line-strong: rgba(38, 37, 30, 0.18);
+  --cs-stone: #cdcdc9;
+  --cs-shade: rgba(38, 37, 30, 0.14);
+
+  /* Scrollbar thumb: translucent ink, so one value reads on paper, surface and
+     code backgrounds alike. The track is always transparent. */
+  --cs-scrollbar: rgba(38, 37, 30, 0.26);
+  --cs-scrollbar-hover: rgba(38, 37, 30, 0.42);
+  --cs-scrollbar-active: rgba(38, 37, 30, 0.6);
+
+  /* Ink. Contrast on #f7f7f4: text 12.7, ink-2 7.1, ink-3 5.5 (all AA);
+     ink-4 is for markup characters and other non-text decoration. */
+  --cs-ink: #26251e;
+  --cs-text: #2f2e27;
+  --cs-ink-2: #55544c;
+  --cs-ink-3: #66655d;
+  --cs-ink-4: #8f8e87;
+
+  /* Ember. The brand orange (#f54e00) is only 3.3:1 on paper, so text and
+     links use a deeper step (4.9:1); the bright one stays for the caret and
+     focus ring. */
+  --cs-accent: #f54e00;
+  --cs-accent-text: #c43e00;
+  --cs-accent-hover: #9d3200;
+  --cs-accent-soft: rgba(245, 78, 0, 0.1);
+  --cs-accent-line: rgba(196, 62, 0, 0.4);
+  --cs-caret: #f54e00;
+
+  /* Selection, highlight, search */
+  --cs-selection: #8bc4f8;   /* Cursor's one cool tone, kept for text selection only */
+  --cs-mark: rgba(224, 160, 40, 0.3);
+  --cs-hit: rgba(224, 160, 40, 0.32);
+  --cs-hit-active: #f6b48e;
+  --cs-tooltip: #26251e;
+  --cs-on-tooltip: #f7f7f4;
+
+  /* Status */
+  --cs-ok: #2f7355;
+  --cs-warn: #8a5f22;
+  --cs-danger: #c42a50;
+  --cs-info: #2a6577;
+
+  /* Diagram fills: ember, forest, amber, crimson, stone and ash, softened
+     into the paper (dark text on every one stays above 6:1); --cs-note is the
+     sticky-note fill of sequence diagrams */
+  --cs-viz-1: #f69a6e;
+  --cs-viz-2: #8cb1a0;
+  --cs-viz-3: #d9b889;
+  --cs-viz-4: #e392a5;
+  --cs-viz-5: #cdcdc9;
+  --cs-viz-6: #b5b4ac;
+  --cs-note: #ebdec9;
+
+  /* Syntax (all >= 4.5:1 on #f2f1ed) */
+  --cs-syn-keyword: #bb2850;
+  --cs-syn-string: #2f7355;
+  --cs-syn-number: #8a5f22;
+  --cs-syn-def: #2a6577;
+  --cs-syn-builtin: #a6460f;
+  --cs-syn-comment: #6b6a62;
+
+  /* Checkbox tick, painted in the paper colour */
+  --cs-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.4 8.6l3 3 6.2-7.2' fill='none' stroke='%23f7f7f4' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+
+  /* ---- Typora variables ---- */
+  --bg-color: var(--cs-paper);
+  --text-color: var(--cs-text);
+  --select-text-bg-color: var(--cs-selection);
+  --select-text-font-color: var(--cs-ink);
+  --monospace: var(--cs-font-mono);
+  --side-bar-bg-color: var(--cs-sidebar);
+  --control-text-color: var(--cs-ink-2);
+  --control-text-hover-color: var(--cs-ink);
+  --item-hover-bg-color: var(--cs-hover);
+  --item-hover-text-color: var(--cs-ink);
+  --active-file-bg-color: var(--cs-active);
+  --active-file-text-color: var(--cs-ink);
+  --active-file-border-color: var(--cs-accent);
+  --window-border: 1px solid var(--cs-line);
+  --window-border-color: var(--cs-line);
+  --border-color: var(--cs-line);
+  --panel-border-color: var(--cs-line-strong);
+  --table-border-color: var(--cs-line-strong);
+  --rawblock-edit-panel-bd: var(--cs-surface);   /* a background, painted in nested layers: keep it opaque */
+  --primary-color: var(--cs-accent-text);
+  --primary-btn-border-color: var(--cs-ink);
+  --primary-btn-text-color: var(--cs-paper);
+  --md-char-color: var(--cs-ink-4);
+  --meta-content-color: var(--cs-ink-3);
+  --blur-text-color: #b9b8b0;
+  --focus-ring-color: var(--cs-accent);
+  --hint-color: var(--cs-ink-3);
+  --heading-char-color: var(--cs-ink-4);
+  --drag-placeholder-color: var(--cs-accent);
+  --search-select-bg-color: var(--cs-hit-active);
+  --search-select-text-color: var(--cs-ink);
+  --active-toggle-btn-color: var(--cs-surface-2);
+  --color-popover-bg-color: var(--cs-paper);
+  --side-bar-menu-active-tint: var(--cs-hover);
+
+  /* ---- Mermaid ----
+     Typora hands a custom theme name to Mermaid's "default" theme, whose node
+     colours are hard-coded, so a built-in theme is the base here and the
+     palette is applied in base.css (section 11) from the tokens above. */
+  --mermaid-theme: neutral;
+  --node-fill: #f2f1ed;
+}

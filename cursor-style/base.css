@@ -1,0 +1,1385 @@
+/* ==========================================================================
+   Cursor Style · shared styles
+   --------------------------------------------------------------------------
+   Built on Typora's bundled GitHub theme (github.css): its document skeleton,
+   block geometry and native editing behaviour are kept. What this file changes
+   is how that skeleton looks:
+
+   - Cursor-style colour, type hierarchy and surface rules;
+   - one text column (--cs-measure) that every block shares, so paragraphs,
+     headings, lists, quotes, code, tables, images, maths and diagrams all start
+     and end on the same two edges; wide content scrolls or scales inside it;
+   - a rhythm tuned for long-form reading in Chinese mixed with Latin text.
+
+   Imported by cursor-style.css (light) and cursor-style-dark.css (dark).
+   Colour tokens (--cs-*) and Typora's own variables live in the entry files;
+   this file holds layout, typography and component rules only.
+
+   Customise by adding rules to "cursor-style.user.css" (light) or
+   "cursor-style-dark.user.css" (dark) in the Typora themes folder, e.g.
+   :root { --cs-measure: 48rem; }
+   ========================================================================== */
+
+
+/* --------------------------------------------------------------------------
+   0. Fonts
+   Inter, JetBrains Mono and EB Garamond are SIL OFL 1.1 (see fonts/OFL-*.txt).
+   They are Latin-only subsets; CJK glyphs always come from system fonts.
+   Typora strips @font-face when exporting HTML, so every stack below is also
+   written to look right with system fonts alone.
+
+   Inter and Garamond deliberately stop short of the punctuation that Chinese
+   text sets differently: curly quotes, the em dash, the ellipsis, the middle
+   dot and circled numbers. Those code points fall through to the CJK font in
+   the stack, so “引号”、——破折号 and …… come out full-width and centred as
+   Chinese typography expects, instead of as narrow Latin glyphs.
+   -------------------------------------------------------------------------- */
+@font-face {
+  font-family: "CS Inter";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("fonts/inter-var.woff2") format("woff2");
+  unicode-range: U+0020-00B6, U+00B8-024F, U+02B0-036F, U+1E00-1EFF, U+2000-2013, U+2016-2017,
+    U+2020-2025, U+2027-245F, U+2500-27BF, U+2B00-2BFF, U+FE0F, U+FFFD;
+}
+@font-face {
+  font-family: "CS Inter";
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("fonts/inter-italic-var.woff2") format("woff2");
+  unicode-range: U+0020-00B6, U+00B8-024F, U+02B0-036F, U+1E00-1EFF, U+2000-2013, U+2016-2017,
+    U+2020-2025, U+2027-245F, U+2500-27BF, U+2B00-2BFF, U+FE0F, U+FFFD;
+}
+@font-face {
+  font-family: "CS Mono";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("fonts/jetbrains-mono-var.woff2") format("woff2");
+}
+/* Garamond has a small x-height; size-adjust lets Latin glyphs match the body
+   while CJK fallback glyphs in the same line stay at their natural size. */
+@font-face {
+  font-family: "CS Garamond";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  size-adjust: 112%;
+  src: url("fonts/eb-garamond-var.woff2") format("woff2");
+  unicode-range: U+0020-00B6, U+00B8-024F, U+02B0-036F, U+1E00-1EFF, U+2000-2013, U+2016-2017,
+    U+2020-2025, U+2027-245F, U+2500-27BF, U+2B00-2BFF, U+FE0F, U+FFFD;
+}
+@font-face {
+  font-family: "CS Garamond";
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  size-adjust: 112%;
+  src: url("fonts/eb-garamond-italic-var.woff2") format("woff2");
+  unicode-range: U+0020-00B6, U+00B8-024F, U+02B0-036F, U+1E00-1EFF, U+2000-2013, U+2016-2017,
+    U+2020-2025, U+2027-245F, U+2500-27BF, U+2B00-2BFF, U+FE0F, U+FFFD;
+}
+
+
+/* --------------------------------------------------------------------------
+   1. Shared tokens (mode-independent)
+   -------------------------------------------------------------------------- */
+:root {
+  --cs-measure: 56rem;     /* THE text column: the width every block shares */
+  --cs-gutter: 2rem;       /* space between the column and the window edge */
+  --cs-leading: 1.8;       /* body line height: airy enough for dense CJK glyphs */
+
+  --cs-radius: 4px;        /* inline code, blocks, controls: Cursor's 4px */
+  --cs-radius-lg: 8px;     /* panels, dialogs, popovers */
+  --cs-ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* The CJK families come straight after the bundled Latin face so that the
+     punctuation excluded above lands on them, not on a system Latin font. */
+  --cs-font-sans: "CS Inter", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI",
+    "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC", "WenQuanYi Micro Hei",
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --cs-font-serif: "CS Garamond", "Songti SC", "STSong", "Noto Serif CJK SC",
+    "Source Han Serif SC", "Source Han Serif CN", "Iowan Old Style", "Palatino Linotype", Palatino,
+    "Microsoft YaHei UI", "Microsoft YaHei", serif;
+  --cs-font-mono: "CS Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI",
+    "Microsoft YaHei", "Noto Sans CJK SC", monospace;
+  --cs-code-ligatures: none;   /* `normal` turns on JetBrains Mono's programming ligatures */
+}
+
+@media screen and (max-width: 40rem) {
+  :root { --cs-gutter: 1.25rem; }
+}
+
+
+/* --------------------------------------------------------------------------
+   2. Document and the text column
+   `rem` is used everywhere so Typora's font-size preference scales the theme.
+   #write is the column: its box is --cs-measure wide plus a gutter on each
+   side, and every block inside simply fills it. Nothing below gives a block a
+   private width or its own centring, which is what keeps the edges common.
+   -------------------------------------------------------------------------- */
+html {
+  font-size: 16px;
+  font-family: var(--cs-font-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  font-kerning: normal;
+}
+
+/* Typora's macOS shell writes an inline background colour and --bg-color onto
+   <body> shortly after a theme is applied. If that happens before this file has
+   loaded, the value it writes is Typora's default white, so the page colour is
+   asserted here with !important. Apart from a few Mermaid declarations
+   (section 11), this is the only place the theme needs it. */
+html, body {
+  background-color: var(--cs-paper) !important;
+  --bg-color: var(--cs-paper) !important;
+}
+
+body {
+  color: var(--cs-text);
+  line-height: var(--cs-leading);
+}
+
+#write {
+  max-width: calc(var(--cs-measure) + 2 * var(--cs-gutter));
+  margin: 0 auto;
+  padding: 2.5rem var(--cs-gutter) 9rem;
+  font-size: 1rem;
+  line-height: var(--cs-leading);
+  caret-color: var(--cs-caret);
+  line-break: strict;
+  text-autospace: normal;
+}
+
+::selection,
+.in-text-selection {
+  text-shadow: none;
+}
+
+
+/* --------------------------------------------------------------------------
+   3. Headings
+   Cursor sets headlines at a restrained weight and tightens tracking as the
+   size grows. Chinese strokes are denser than Latin ones, so the weight is
+   500 rather than 400 and the tracking stays small enough not to squeeze CJK
+   glyphs. No heading carries a rule: the level is told by size, weight, colour
+   and space. The space above a heading is at least twice the space below it,
+   so a heading stays with the text it introduces, and a heading that follows
+   another heading directly uses only the lower gap of the one above.
+   -------------------------------------------------------------------------- */
+#write h1, #write h2, #write h3, #write h4, #write h5, #write h6 {
+  position: relative;
+  font-family: var(--cs-font-sans);
+  font-weight: 500;
+  color: var(--cs-ink);
+  cursor: text;
+  text-wrap: balance;
+}
+
+#write h1 { margin: 3rem 0 1.25rem;    font-size: 2.25rem;   line-height: 1.2;  letter-spacing: -0.02em; }
+#write h2 { margin: 3rem 0 1rem;       font-size: 1.625rem;  line-height: 1.3;  letter-spacing: -0.012em; }
+#write h3 { margin: 2.25rem 0 0.75rem; font-size: 1.375rem;  line-height: 1.35; letter-spacing: -0.005em; }
+#write h4 { margin: 1.875rem 0 0.625rem; font-size: 1.125rem; line-height: 1.45; font-weight: 600; }
+#write h5 { margin: 1.625rem 0 0.5rem;  font-size: 1rem;      line-height: 1.5;  font-weight: 600; color: var(--cs-ink-2); }
+#write h6 {
+  margin: 1.625rem 0 0.625rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cs-ink-3);
+}
+
+#write h1 code, #write h2 code, #write h3 code,
+#write h4 code, #write h5 code, #write h6 code,
+#write h1 tt, #write h2 tt, #write h3 tt,
+#write h4 tt, #write h5 tt, #write h6 tt {
+  font-size: 0.85em;
+}
+
+#write > h1:first-child, #write > h2:first-child, #write > h3:first-child,
+#write > h4:first-child, #write > h5:first-child, #write > h6:first-child {
+  margin-top: 0;
+}
+
+/* A heading straight under a higher one: the gap is the lower margin of the
+   heading above, never less than 0.75rem. */
+#write h1 + :is(h2, h3, h4, h5, h6),
+#write h2 + :is(h3, h4, h5, h6),
+#write h3 + :is(h4, h5, h6),
+#write h4 + :is(h5, h6),
+#write h5 + h6 {
+  margin-top: 0.75rem;
+}
+
+#write li > h1, #write li > h2, #write li > h3, #write li > h4, #write li > h5, #write li > h6,
+#write blockquote > h1, #write blockquote > h2, #write blockquote > h3,
+#write blockquote > h4, #write blockquote > h5, #write blockquote > h6 {
+  margin-top: 1rem;
+}
+
+/* The "h3" tag Typora shows in the margin while a heading is being edited.
+   Offsets follow each heading's first line (GitHub does the same for h3-h6). */
+h3.md-focus:before, h4.md-focus:before, h5.md-focus:before, h6.md-focus:before {
+  left: -1.5625rem;
+  border-radius: var(--cs-radius);
+  font-family: var(--cs-font-mono);
+  letter-spacing: 0;
+  text-transform: none;
+}
+#write > h3.md-focus:before { top: 0.5rem; }
+#write > h4.md-focus:before { top: 0.4rem; }
+#write > h5.md-focus:before { top: 0.3rem; }
+#write > h6.md-focus:before { top: 0.15rem; }
+
+
+/* --------------------------------------------------------------------------
+   4. Paragraphs and inline text
+   -------------------------------------------------------------------------- */
+#write p {
+  margin: 0 0 1.125rem;
+}
+
+/* Typora exports a raw <details> block without the wrapper the editor uses,
+   so it is a direct child of #write there and needs the paragraph spacing. */
+#write > details {
+  margin: 0 0 1.125rem;
+}
+#write summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--cs-ink);
+}
+
+#write strong {
+  font-weight: 600;
+  color: var(--cs-ink);
+}
+
+#write em {
+  font-style: italic;
+  color: var(--cs-ink);
+}
+
+#write del {
+  color: var(--cs-ink-3);
+  text-decoration-color: var(--cs-ink-3);
+}
+
+#write mark {
+  background: var(--cs-mark);
+  color: var(--cs-ink);
+  padding: 0.04em 0.25em;
+  border-radius: 3px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+#write mark .md-meta { color: var(--cs-ink-3); }
+
+#write sub, #write sup {
+  font-size: 0.75em;
+  line-height: 0;
+}
+
+/* Links: ember text, no underline at rest, an underline on hover (as on
+   Cursor's site). Colour alone separates them from body text at 4.8:1 against
+   12:1, and the hue is the one warm accent in the palette. */
+#write a,
+#write a.md-link,
+#write .md-url {
+  color: var(--cs-accent-text);
+  text-decoration: none;
+  transition: color 0.15s var(--cs-ease);
+}
+#write a:hover,
+#write .md-url:hover {
+  color: var(--cs-accent-hover);
+  text-decoration: underline;
+  text-decoration-color: currentColor;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+/* Footnote markers and TOC entries style their own links */
+#write sup.md-footnote a,
+#write a.md-toc-inner {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Keys */
+#write kbd {
+  display: inline-block;
+  margin: 0 0.1em;
+  padding: 0.05em 0.45em 0.1em;
+  font-family: var(--cs-font-mono);
+  font-size: 0.8125em;
+  line-height: 1.4;
+  color: var(--cs-ink-2);
+  background: var(--cs-paper);
+  border: 1px solid var(--cs-line-strong);
+  border-bottom-width: 2px;
+  border-radius: var(--cs-radius);
+  box-shadow: none;
+}
+
+/* Inline code */
+#write code,
+#write tt {
+  font-family: var(--cs-font-mono);
+  font-variant-ligatures: var(--cs-code-ligatures);
+  font-size: 0.875em;
+  color: var(--cs-ink);
+  background: var(--cs-surface);
+  border: 1px solid var(--cs-line);
+  border-radius: var(--cs-radius);
+  padding: 0.08em 0.38em;
+  letter-spacing: 0;
+}
+/* code inside a code block is styled by the block */
+#write .md-fences code,
+#write pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* A hairline in the stone tone. The editor wraps the rule in .md-hr, exported
+   HTML has a bare <hr>: only one of them may carry the spacing, or the rule
+   would be drawn twice. */
+#write hr {
+  height: 0;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid var(--cs-line-strong);
+  background: none;
+  overflow: visible;
+}
+#write .md-hr,
+#write > hr {
+  margin: 2.75rem 0;
+}
+#write .md-hr hr {
+  margin: 0;
+}
+
+/* Footnote reference */
+sup.md-footnote {
+  padding: 0.08em 0.42em;
+  font-size: 0.72em;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--cs-ink-2);
+  background-color: var(--cs-surface-2);
+  border-radius: var(--cs-radius);
+}
+
+/* Markup characters Typora reveals around the element being edited */
+.md-comment {
+  color: var(--cs-ink-3);
+  opacity: 1;
+}
+.md-tag, .md-raw-inline, .md-linebreak-mark, [md-inline=linebreak] {
+  color: var(--cs-ink-3);
+}
+.md-lang {
+  color: var(--cs-syn-builtin);
+}
+
+
+/* --------------------------------------------------------------------------
+   5. Lists and task lists
+   -------------------------------------------------------------------------- */
+#write ul, #write ol {
+  margin: 0 0 1.125rem;
+  padding-left: 1.75rem;
+}
+#write li > ul, #write li > ol {
+  margin: 0.25rem 0;
+}
+#write li p {
+  margin: 0.25rem 0;
+}
+#write ul > li::marker { color: var(--cs-ink-4); }
+#write ol > li::marker {
+  color: var(--cs-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Checkboxes: native input, custom skin. Clicking still toggles via Typora. */
+#write input[type="checkbox"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--cs-ink-4);
+  border-radius: var(--cs-radius);
+  background-color: var(--cs-paper);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.15s var(--cs-ease), border-color 0.15s var(--cs-ease);
+}
+#write input[type="checkbox"]:hover { border-color: var(--cs-ink-2); }
+#write input[type="checkbox"]:checked {
+  background-color: var(--cs-ink);
+  border-color: var(--cs-ink);
+  background-image: var(--cs-check);
+}
+#write .md-task-list-item > input {
+  margin-left: -1.55em;
+  margin-top: calc((var(--cs-leading) * 1rem - 1rem) / 2);
+}
+/* completed items recede */
+#write .md-task-list-item > input:checked ~ p {
+  color: var(--cs-ink-3);
+}
+
+
+/* --------------------------------------------------------------------------
+   6. Blockquotes and alerts
+   GitHub's left rule, in the stone tone, with the editorial serif Cursor
+   reserves for prose blocks. Chinese glyphs fall through to the system serif.
+   -------------------------------------------------------------------------- */
+#write blockquote {
+  margin: 1.5rem 0;
+  padding: 0 0 0 1.25rem;
+  border-left: 3px solid var(--cs-stone);
+  color: var(--cs-ink-2);
+  font-family: var(--cs-font-serif);
+  font-size: 1.0625rem;
+  line-height: var(--cs-leading);
+}
+#write blockquote p { margin: 0 0 0.75rem; }
+#write blockquote strong, #write blockquote em { color: inherit; }
+#write blockquote blockquote {
+  margin: 0.75rem 0;
+  border-left-color: var(--cs-line-strong);
+}
+#write blockquote code, #write blockquote kbd { font-family: var(--cs-font-mono); }
+.on-focus-mode blockquote { border-left-color: var(--cs-line); }
+
+/* GitHub-style alerts (Typora 1.8.6 and later). Inert on older versions. */
+#write blockquote.md-alert {
+  padding: 0.875rem 1.125rem;
+  border: 1px solid var(--cs-line);
+  border-left-width: 3px;
+  border-radius: var(--cs-radius);
+  background: var(--cs-surface);
+  font-family: var(--cs-font-sans);
+  font-size: 1rem;
+  line-height: var(--cs-leading);
+  color: var(--cs-text);
+}
+#write blockquote.md-alert-note      { border-left-color: var(--cs-info); }
+#write blockquote.md-alert-tip       { border-left-color: var(--cs-ok); }
+#write blockquote.md-alert-important { border-left-color: var(--cs-accent-text); }
+#write blockquote.md-alert-warning   { border-left-color: var(--cs-warn); }
+#write blockquote.md-alert-caution   { border-left-color: var(--cs-danger); }
+
+
+/* --------------------------------------------------------------------------
+   7. Front matter, footnote definitions, TOC
+   The three "surface" blocks (front matter, TOC, code) share one frame: bone
+   fill, a 10% ink hairline and 4px corners.
+   -------------------------------------------------------------------------- */
+#write pre.md-meta-block {
+  margin: 0 0 2.25rem;
+  padding: 0.875rem 1.125rem;
+  font-family: var(--cs-font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.65;
+  color: var(--cs-ink-2);
+  background: var(--cs-surface);
+  border: 1px solid var(--cs-line);
+  border-radius: var(--cs-radius);
+}
+#write pre.md-meta-block:empty:before { color: var(--cs-ink-4); }
+
+.footnotes {
+  opacity: 1;
+  font-size: 0.875rem;
+  color: var(--cs-ink-2);
+}
+/* Exported documents gather the notes in .footnotes-area, led by a bare <hr> */
+.footnotes-area {
+  margin-top: 3rem;
+  color: var(--cs-ink-2);
+}
+.footnotes-area hr {
+  margin: 0 0 1.25rem;
+}
+.footnote-line {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.65;
+}
+.md-fn-count {
+  font-weight: 600;
+  color: var(--cs-ink);
+  font-variant-numeric: tabular-nums;
+}
+.reversefootnote { font-family: var(--cs-font-sans); }
+.md-def-name { color: var(--cs-ink-2); }
+.md-def-name:before, .md-def-name:after { color: var(--cs-ink-4); }
+.md-def-footnote { font-size: 0.875rem; }
+
+/* Typora gives the TOC a 20px bleed on both sides and pads the list inside it;
+   the card below is the padding, and its edges are the column's. */
+.md-toc {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  background: var(--cs-surface);
+  border: 1px solid var(--cs-line);
+  border-radius: var(--cs-radius);
+}
+.md-toc-content { margin: 0; padding: 0; }
+.md-toc-item { color: var(--cs-ink-2); }
+.md-toc-item a { text-decoration: none; }
+.md-toc-inner { transition: color 0.15s var(--cs-ease); }
+.md-toc-inner:hover { color: var(--cs-accent-text); text-decoration: none; }
+.md-toc-h1 .md-toc-inner { margin-left: 0;       font-weight: 600; color: var(--cs-ink); }
+.md-toc-h2 .md-toc-inner { margin-left: 1.25em; }
+.md-toc-h3 .md-toc-inner { margin-left: 2.5em;  }
+.md-toc-h4 .md-toc-inner { margin-left: 3.75em; }
+.md-toc-h5 .md-toc-inner { margin-left: 5em;    }
+.md-toc-h6 .md-toc-inner { margin-left: 6.25em; }
+
+
+/* --------------------------------------------------------------------------
+   8. Code blocks (CodeMirror 5, as embedded by Typora) and syntax colours
+   Selectors target both the editing DOM and Typora's exported markup. A block
+   is as wide as the column; long lines wrap or, with Typora's "no wrapping"
+   option, scroll inside the block.
+   -------------------------------------------------------------------------- */
+#write .md-fences {
+  margin: 1.5rem 0;
+  padding: 0.875rem 0;
+  font-family: var(--cs-font-mono);
+  font-variant-ligatures: var(--cs-code-ligatures);
+  font-size: 0.84375rem;
+  line-height: 1.7;
+  color: var(--cs-ink);
+  background: var(--cs-surface);
+  border: 1px solid var(--cs-line);
+  border-radius: var(--cs-radius);
+  letter-spacing: 0;
+}
+#write .md-fences.md-fences-with-lineno { padding-left: 0; }
+
+/* Math and diagrams use .md-fences too but are not boxed while idle */
+#write .md-fences-advanced:not(.md-focus) {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+#write pre.md-fences-advanced.md-focus {
+  padding: 0.5rem 0;
+}
+
+.CodeMirror {
+  font-family: var(--cs-font-mono);
+  font-variant-ligatures: var(--cs-code-ligatures);
+  color: var(--cs-ink);
+}
+#write .CodeMirror pre,
+#write .CodeMirror-line {
+  padding-left: 1.125rem;
+  padding-right: 1.125rem;
+}
+.CodeMirror-lines { padding: 0; }
+.CodeMirror div.CodeMirror-cursor { border-left: 2px solid var(--cs-caret); }
+.CodeMirror div.CodeMirror-secondarycursor { border-left-color: var(--cs-ink-4); }
+.CodeMirror-gutters {
+  margin-right: 0;
+  background: transparent;
+  border-right: 1px solid var(--cs-line);
+}
+.CodeMirror-linenumber {
+  min-width: 1.5em;
+  padding: 0 0.75rem 0 1rem;
+  font-size: 0.8125em;
+  color: var(--cs-ink-4);
+}
+.CodeMirror-activeline-background { background: var(--cs-hover); }
+
+/* Syntax palette */
+.md-fences .cm-keyword,   .cm-s-inner .cm-keyword   { color: var(--cs-syn-keyword); }
+.md-fences .cm-atom,      .cm-s-inner .cm-atom,
+.md-fences .cm-number,    .cm-s-inner .cm-number    { color: var(--cs-syn-number); }
+.md-fences .cm-def,       .cm-s-inner .cm-def       { color: var(--cs-syn-def); font-weight: 500; }
+.md-fences .cm-variable,  .cm-s-inner .cm-variable  { color: var(--cs-ink); }
+.md-fences .cm-variable-2,.cm-s-inner .cm-variable-2{ color: var(--cs-ink-2); }
+.md-fences .cm-variable-3,.cm-s-inner .cm-variable-3,
+.md-fences .cm-type,      .cm-s-inner .cm-type      { color: var(--cs-syn-def); }
+.md-fences .cm-string,    .cm-s-inner .cm-string    { color: var(--cs-syn-string); }
+.md-fences .cm-string-2,  .cm-s-inner .cm-string-2  { color: var(--cs-syn-builtin); }
+.md-fences .cm-property,  .cm-s-inner .cm-property  { color: var(--cs-syn-def); }
+.md-fences .cm-operator,  .cm-s-inner .cm-operator  { color: var(--cs-ink-2); }
+.md-fences .cm-comment,   .cm-s-inner .cm-comment,
+.md-fences.cm-comment,    .cm-s-inner.cm-comment    { color: var(--cs-syn-comment); }
+.md-fences .cm-meta,      .cm-s-inner .cm-meta,
+.md-fences .cm-qualifier, .cm-s-inner .cm-qualifier { color: var(--cs-ink-3); }
+.md-fences .cm-builtin,   .cm-s-inner .cm-builtin   { color: var(--cs-syn-builtin); }
+.md-fences .cm-bracket,   .cm-s-inner .cm-bracket   { color: var(--cs-ink-3); }
+.md-fences .cm-tag,       .cm-s-inner .cm-tag       { color: var(--cs-syn-keyword); }
+.md-fences .cm-attribute, .cm-s-inner .cm-attribute { color: var(--cs-syn-number); }
+.md-fences .cm-header,    .cm-s-inner .cm-header,
+.md-fences.cm-header,     .cm-s-inner.cm-header     { color: var(--cs-ink); font-weight: 600; }
+.md-fences .cm-quote,     .cm-s-inner .cm-quote     { color: var(--cs-syn-string); }
+.md-fences .cm-hr,        .cm-s-inner .cm-hr        { color: var(--cs-ink-3); }
+.md-fences .cm-link,      .cm-s-inner .cm-link      { color: var(--cs-accent-text); text-decoration: underline; }
+.md-fences .cm-positive,  .cm-s-inner .cm-positive  { color: var(--cs-ok); }
+.md-fences .cm-negative,  .cm-s-inner .cm-negative  { color: var(--cs-danger); }
+.md-fences .cm-error,     .cm-s-inner .cm-error     { color: var(--cs-danger); }
+.md-fences .cm-strong,    .cm-s-inner .cm-strong    { font-weight: 600; }
+.md-fences .cm-em,        .cm-s-inner .cm-em        { font-style: italic; }
+.md-fences .cm-strikethrough, .cm-s-inner .cm-strikethrough { text-decoration: line-through; }
+
+/* Search hits inside code take their colours from --search-select-* in the
+   entry files, through Typora's own rules. The current hit is also CodeMirror's
+   selection, which is painted on the whole line box and would show as a blue
+   rim around the shorter hit, so the hit gets a little vertical padding. */
+.cm-search-hit.CodeMirror-selectedtext {
+  padding: 0.2em 0;
+  border-radius: 2px;
+}
+
+/* Language / copy tooltip shown under a focused block */
+.code-tooltip {
+  color: var(--cs-ink-2);
+  background: var(--cs-paper);
+  border: 1px solid var(--cs-line-strong);
+  border-radius: var(--cs-radius);
+  box-shadow: 0 2px 8px var(--cs-shade);
+}
+.code-tooltip .ty-input,
+.code-tooltip input {
+  color: var(--cs-ink);
+  font-family: var(--cs-font-sans);
+}
+.code-tooltip.md-hover-tip,
+.code-tooltip.md-hover-tip .code-tooltip-content {
+  color: var(--cs-on-tooltip);
+  background: var(--cs-tooltip);
+  border: 0;
+  border-radius: var(--cs-radius);
+  font-family: var(--cs-font-sans);
+  box-shadow: none;
+}
+.code-tooltip-content code {
+  color: inherit;
+  background: rgba(127, 127, 127, 0.35);
+  border: 0;
+}
+.mathjax-block > .code-tooltip { bottom: 0.375rem; }
+
+
+/* --------------------------------------------------------------------------
+   9. Tables
+   Typora wraps every table in a <figure> that already scrolls sideways, so the
+   frame goes on the figure: it is as wide as the column, like a code block.
+   A table that fits wraps its cells, as on GitHub. A table with seven or more
+   columns takes the width its content needs and scrolls inside the frame,
+   instead of squeezing its long cells into slivers.
+   -------------------------------------------------------------------------- */
+#write figure {
+  max-width: 100%;
+  margin: 1.5rem 0;
+  background: none;
+  border: 1px solid var(--cs-line);
+  border-radius: var(--cs-radius);
+}
+#write li > figure { margin: 0.75rem 0; }
+
+#write table {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border-collapse: collapse;
+  border: 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+  color: var(--cs-text);
+}
+#write table tr {
+  background: none;
+  border: 0;
+}
+#write table th,
+#write table td {
+  min-width: 4.5rem;
+  padding: 0.5rem 0.875rem;
+  border: 0;
+  border-bottom: 1px solid var(--cs-line);
+  vertical-align: top;
+}
+#write table th {
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+  font-weight: 600;
+  color: var(--cs-ink);
+  background: var(--cs-surface);
+  border-bottom: 1px solid var(--cs-line-strong);
+  text-wrap: balance;
+}
+#write table tr:last-child td { border-bottom: 0; }
+#write table.md-table td { min-width: 4.5rem; }
+#write table code { font-size: 0.8125rem; }
+
+@supports selector(:has(*)) {
+  #write table:has(tr > :nth-child(7)) {
+    width: max-content;
+    min-width: 100%;
+  }
+  #write table:has(tr > :nth-child(7)) td { max-width: 22rem; }
+}
+
+
+/* --------------------------------------------------------------------------
+   10. Images and captions
+   Typora centres a lone image and caps it at the column width (max-width:
+   100%), so large images scale down to the column instead of overflowing it.
+   -------------------------------------------------------------------------- */
+#write img {
+  height: auto;
+  border-radius: var(--cs-radius);
+}
+
+/* A lone image gets the same hairline as the other blocks */
+#write p > .md-image:only-child img,
+#write p > img:only-child {
+  box-shadow: 0 0 0 1px var(--cs-line);
+}
+#write p > .md-image:only-child { margin-top: 0.25rem; }
+
+/* A paragraph that is only emphasis, directly after an image, reads as its
+   caption (needs :has(); falls back to a normal paragraph without it).
+   While editing, Typora wraps the <em> in span[md-inline="em"]; exported HTML
+   has the bare <em>. */
+@supports selector(:has(*)) {
+  #write p:is(:has(> .md-image:only-child), :has(> img:only-child))
+    + p:has(> :is(em, span[md-inline="em"]):only-child) {
+    margin-top: -0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.55;
+    text-align: center;
+    color: var(--cs-ink-3);
+  }
+  #write p:is(:has(> .md-image:only-child), :has(> img:only-child))
+    + p:has(> :is(em, span[md-inline="em"]):only-child) em {
+    font-style: normal;
+    color: inherit;
+  }
+}
+#write figcaption {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  text-align: center;
+  color: var(--cs-ink-3);
+}
+.md-image > .md-meta {
+  border-radius: var(--cs-radius);
+  color: var(--cs-ink-3);
+}
+.md-img-error > .md-meta,
+.md-resouce-error-mark { color: var(--cs-danger); }
+.md-image > .md-show-hint:after,
+.md-no-ref.md-expand > .md-content:after {
+  color: var(--cs-ink-2);
+  background-color: var(--cs-paper);
+  border: 1px solid var(--cs-line-strong);
+  border-radius: var(--cs-radius);
+  box-shadow: 0 2px 8px var(--cs-shade);
+}
+
+
+/* --------------------------------------------------------------------------
+   11. Math and diagrams
+   Display maths scrolls sideways inside the column; diagrams scale to it.
+   Typora lets Gantt charts break out of the column (98vw wide, up to 1140px);
+   the last block of this section puts them back.
+   -------------------------------------------------------------------------- */
+#write .md-math-block,
+#write mjx-container[display="true"] {
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+#write .md-math-block { text-align: center; }
+.md-mathjax-preview,
+.md-fences-adv-panel,
+.md-math-container { font-family: var(--cs-font-sans); }
+.md-mathjax-midline { background: var(--cs-surface); }
+
+/* Mermaid. The entry files pick a built-in Mermaid theme (neutral in light,
+   dark in dark) because a custom theme name falls back to Mermaid's
+   "default", whose colours are hard-coded. The palette is then applied here
+   from the tokens, so diagrams follow light and dark together.
+   Flowchart, state, sequence, class, entity-relationship, Gantt and pie
+   diagrams are styled; other types keep the built-in theme's neutral or dark
+   colours.
+   Mermaid also writes styles inline and under #mermaidChartN. The selectors
+   below out-rank the latter, so !important is kept only on the declarations
+   that lose without it. That list was checked declaration by declaration
+   against the Mermaid bundled with Typora 1.5.6. */
+#write .md-diagram-panel { color: var(--cs-text); }
+#write .md-diagram-panel-preview { padding-top: 0.5rem; }
+#write .md-diagram-panel svg,
+#write .md-diagram-panel .label,
+#write .md-diagram-panel .nodeLabel,
+#write .md-diagram-panel .edgeLabel,
+#write .md-diagram-panel text {
+  font-family: var(--cs-font-sans) !important;
+}
+
+/* Flowchart and state diagram: nodes, labels, clusters, lines */
+#write .md-diagram-panel .node rect,
+#write .md-diagram-panel .node circle,
+#write .md-diagram-panel .node ellipse,
+#write .md-diagram-panel .node polygon,
+#write .md-diagram-panel .node path {
+  fill: var(--cs-surface);
+  stroke: var(--cs-ink-4);
+  stroke-width: 1px !important;
+}
+#write .md-diagram-panel .cluster rect,
+#write .md-diagram-panel .statediagram-cluster rect {
+  fill: var(--cs-hover) !important;
+  stroke: var(--cs-line-strong);
+  stroke-width: 1px;
+}
+#write .md-diagram-panel .label,
+#write .md-diagram-panel .label text,
+#write .md-diagram-panel .nodeLabel,
+#write .md-diagram-panel .cluster text {
+  color: var(--cs-ink);
+  fill: var(--cs-ink);
+}
+#write .md-diagram-panel .edgeLabel,
+#write .md-diagram-panel .edgeLabel span {
+  background-color: var(--bg-color) !important;
+  color: var(--cs-ink-2) !important;
+}
+#write .md-diagram-panel .edgeLabel rect,
+#write .md-diagram-panel .labelBkg {
+  fill: var(--bg-color) !important;
+  opacity: 1;
+}
+#write .md-diagram-panel .edgePath .path,
+#write .md-diagram-panel .flowchart-link,
+#write .md-diagram-panel .transition {
+  stroke: var(--cs-ink-3);
+}
+#write .md-diagram-panel .edge-thickness-normal { stroke-width: 1.5px !important; }
+#write .md-diagram-panel marker,
+#write .md-diagram-panel marker *,
+#write .md-diagram-panel .arrowheadPath,
+#write .md-diagram-panel .marker {
+  fill: var(--cs-ink-3) !important;
+  stroke: var(--cs-ink-3) !important;
+}
+/* The rule above fills every arrowhead. Some heads are open shapes, so they are
+   put back: entity-relationship cardinality marks (open strokes, hollow circle)
+   and the UML inheritance and aggregation heads (hollow triangle and diamond). */
+#write .md-diagram-panel :is(marker[id^="ONLY_ONE"], marker[id^="ZERO_OR"], marker[id^="ONE_OR_MORE"]) path {
+  fill: none !important;
+}
+#write .md-diagram-panel :is(marker[id^="ONLY_ONE"], marker[id^="ZERO_OR"], marker[id^="ONE_OR_MORE"]) circle,
+#write .md-diagram-panel marker.extension path,
+#write .md-diagram-panel marker.aggregation path {
+  fill: var(--bg-color) !important;
+}
+#write .md-diagram-panel .node circle.state-start,
+#write .md-diagram-panel .node circle.state-end {
+  fill: var(--cs-ink) !important;
+  stroke: var(--cs-ink) !important;
+}
+
+/* Sequence diagram */
+#write .md-diagram-panel rect.actor {
+  fill: var(--cs-surface);
+  stroke: var(--cs-ink-4);
+}
+#write .md-diagram-panel text.actor,
+#write .md-diagram-panel text.actor > tspan {
+  fill: var(--cs-ink);
+  stroke: none;
+}
+#write .md-diagram-panel line[id^="actor"],
+#write .md-diagram-panel .actor-line {
+  stroke: var(--cs-line-strong);
+}
+#write .md-diagram-panel .messageLine0,
+#write .md-diagram-panel .messageLine1 {
+  stroke: var(--cs-ink-3);
+  stroke-width: 1.5px;
+}
+#write .md-diagram-panel .messageText {
+  fill: var(--cs-ink-2);
+  stroke: none;
+}
+#write .md-diagram-panel .sequenceNumber {
+  fill: var(--bg-color);
+}
+#write .md-diagram-panel .note {
+  fill: var(--cs-note);
+  stroke: var(--cs-warn);
+}
+#write .md-diagram-panel .noteText,
+#write .md-diagram-panel .noteText > tspan {
+  fill: var(--cs-ink);
+}
+#write .md-diagram-panel .labelBox {
+  fill: var(--cs-surface);
+  stroke: var(--cs-ink-4);
+}
+#write .md-diagram-panel .labelText,
+#write .md-diagram-panel .labelText > tspan,
+#write .md-diagram-panel .loopText,
+#write .md-diagram-panel .loopText > tspan {
+  fill: var(--cs-ink);
+  stroke: none;
+}
+#write .md-diagram-panel .loopLine { stroke: var(--cs-ink-4); }
+#write .md-diagram-panel .activation0,
+#write .md-diagram-panel .activation1,
+#write .md-diagram-panel .activation2 {
+  fill: var(--cs-surface-2);
+  stroke: var(--cs-ink-4);
+}
+
+/* Class and entity-relationship diagrams */
+#write .md-diagram-panel .divider { stroke: var(--cs-ink-4); }
+#write .md-diagram-panel .relation,
+#write .md-diagram-panel .relationshipLine { stroke: var(--cs-ink-3) !important; }
+#write .md-diagram-panel rect.entityBox {
+  fill: var(--cs-surface);
+  stroke: var(--cs-ink-4);
+}
+#write .md-diagram-panel .attributeBoxOdd {
+  fill: var(--cs-surface);
+  stroke: var(--cs-ink-4);
+}
+#write .md-diagram-panel .attributeBoxEven {
+  fill: var(--cs-surface-2);
+  stroke: var(--cs-ink-4);
+}
+#write .md-diagram-panel .relationshipLabelBox {
+  fill: var(--bg-color);
+  opacity: 1;
+}
+#write .md-diagram-panel text.er { fill: var(--cs-ink); }
+
+/* Gantt chart */
+#write .md-diagram-panel .titleText { fill: var(--cs-ink); }
+#write .md-diagram-panel .sectionTitle { fill: var(--cs-ink-2); }
+#write .md-diagram-panel .section0,
+#write .md-diagram-panel .section2 {
+  fill: var(--cs-surface);
+  opacity: 0.8;
+}
+#write .md-diagram-panel .section1,
+#write .md-diagram-panel .section3 {
+  fill: transparent;
+  opacity: 1;
+}
+#write .md-diagram-panel .grid .tick line { stroke: var(--cs-line-strong); }
+#write .md-diagram-panel .grid .tick text { fill: var(--cs-ink-3); }
+#write .md-diagram-panel .grid path { stroke-width: 0; }
+#write .md-diagram-panel .task0,
+#write .md-diagram-panel .task1,
+#write .md-diagram-panel .task2,
+#write .md-diagram-panel .task3 {
+  fill: var(--cs-viz-5);
+  stroke: var(--cs-ink-4);
+}
+#write .md-diagram-panel .done0,
+#write .md-diagram-panel .done1,
+#write .md-diagram-panel .done2,
+#write .md-diagram-panel .done3 {
+  fill: var(--cs-surface);
+  stroke: var(--cs-line-strong);
+}
+#write .md-diagram-panel .active0,
+#write .md-diagram-panel .active1,
+#write .md-diagram-panel .active2,
+#write .md-diagram-panel .active3 {
+  fill: var(--cs-viz-1);
+  stroke: var(--cs-accent-text);
+}
+#write .md-diagram-panel .crit0,
+#write .md-diagram-panel .crit1,
+#write .md-diagram-panel .crit2,
+#write .md-diagram-panel .crit3,
+#write .md-diagram-panel .activeCrit0,
+#write .md-diagram-panel .activeCrit1,
+#write .md-diagram-panel .activeCrit2,
+#write .md-diagram-panel .activeCrit3,
+#write .md-diagram-panel .doneCrit0,
+#write .md-diagram-panel .doneCrit1,
+#write .md-diagram-panel .doneCrit2,
+#write .md-diagram-panel .doneCrit3 {
+  fill: var(--cs-viz-4);
+  stroke: var(--cs-danger);
+}
+#write .md-diagram-panel .taskText,
+#write .md-diagram-panel .taskText0,
+#write .md-diagram-panel .taskText1,
+#write .md-diagram-panel .taskText2,
+#write .md-diagram-panel .taskText3,
+#write .md-diagram-panel .activeText0,
+#write .md-diagram-panel .activeText1,
+#write .md-diagram-panel .activeText2,
+#write .md-diagram-panel .activeText3,
+#write .md-diagram-panel .critText0,
+#write .md-diagram-panel .critText1,
+#write .md-diagram-panel .critText2,
+#write .md-diagram-panel .critText3,
+#write .md-diagram-panel .activeCritText0,
+#write .md-diagram-panel .activeCritText1,
+#write .md-diagram-panel .activeCritText2,
+#write .md-diagram-panel .activeCritText3,
+#write .md-diagram-panel .taskTextOutsideLeft,
+#write .md-diagram-panel .taskTextOutsideRight {
+  fill: var(--cs-ink) !important;
+}
+#write .md-diagram-panel .doneText0,
+#write .md-diagram-panel .doneText1,
+#write .md-diagram-panel .doneText2,
+#write .md-diagram-panel .doneText3,
+#write .md-diagram-panel .doneCritText0,
+#write .md-diagram-panel .doneCritText1,
+#write .md-diagram-panel .doneCritText2,
+#write .md-diagram-panel .doneCritText3 {
+  fill: var(--cs-ink-3) !important;
+}
+#write .md-diagram-panel .today { stroke: var(--cs-accent); }
+
+/* Pie chart */
+#write .md-diagram-panel .pieCircle {
+  stroke: var(--bg-color);
+  stroke-width: 2px;
+  opacity: 1;
+}
+#write .md-diagram-panel .pieTitleText {
+  fill: var(--cs-ink);
+  font-size: 1.125rem;
+}
+#write .md-diagram-panel .slice { fill: var(--cs-ink); }
+/* Typora 1.5's Mermaid sets the pie's width from the column and pins the legend
+   238px right of the centre, so a long label runs out of room first. The
+   smaller legend type keeps labels of about eight Chinese characters whole in
+   the default column. */
+#write .md-diagram-panel .legend text {
+  fill: var(--cs-ink-2);
+  font-size: 0.875rem;
+}
+#write .md-diagram-panel path.pieCircle:nth-of-type(6n + 1),
+#write .md-diagram-panel g.legend:nth-of-type(6n + 1) rect { fill: var(--cs-viz-1) !important; stroke: var(--cs-viz-1) !important; }
+#write .md-diagram-panel path.pieCircle:nth-of-type(6n + 2),
+#write .md-diagram-panel g.legend:nth-of-type(6n + 2) rect { fill: var(--cs-viz-2) !important; stroke: var(--cs-viz-2) !important; }
+#write .md-diagram-panel path.pieCircle:nth-of-type(6n + 3),
+#write .md-diagram-panel g.legend:nth-of-type(6n + 3) rect { fill: var(--cs-viz-3) !important; stroke: var(--cs-viz-3) !important; }
+#write .md-diagram-panel path.pieCircle:nth-of-type(6n + 4),
+#write .md-diagram-panel g.legend:nth-of-type(6n + 4) rect { fill: var(--cs-viz-4) !important; stroke: var(--cs-viz-4) !important; }
+#write .md-diagram-panel path.pieCircle:nth-of-type(6n + 5),
+#write .md-diagram-panel g.legend:nth-of-type(6n + 5) rect { fill: var(--cs-viz-5) !important; stroke: var(--cs-viz-5) !important; }
+#write .md-diagram-panel path.pieCircle:nth-of-type(6n),
+#write .md-diagram-panel g.legend:nth-of-type(6n) rect { fill: var(--cs-viz-6) !important; stroke: var(--cs-viz-6) !important; }
+
+.md-diagram-panel-error { color: var(--cs-danger); }
+.md-diagram-panel-preview:empty:before { color: var(--cs-ink-3); }
+pre.md-fences-advanced.md-focus .md-fences-adv-panel {
+  border-color: var(--cs-line-strong);
+  border-radius: var(--cs-radius);
+  background: var(--cs-paper);
+}
+
+/* Gantt charts stay in the column. Typora widens them to the viewport (the
+   selectors repeat Typora's own so that the later rule wins at equal weight);
+   inside the column Mermaid lays the chart out for the column's width. */
+#write > [mermaid-type=gantt] .md-diagram-panel,
+#write > [mermaid-type=gantt].md-focus .md-diagram-panel {
+  left: 0;
+  right: 0;
+  width: auto;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+#write.enable-diagrams > [mermaid-type=gantt].md-fences:not(.md-focus) {
+  width: 100%;
+  margin-left: 0;
+}
+
+
+/* --------------------------------------------------------------------------
+   12. Editor states: search, focus mode, source mode, HTML blocks
+   -------------------------------------------------------------------------- */
+.on-search-panel-open mark,
+mark.md-search-hit {
+  background: var(--cs-hit);
+  color: inherit;
+}
+.md-search-hit, .md-search-hit * { color: inherit; }
+
+#write .md-htmlblock { color: var(--cs-text); }
+
+/* Source-code mode */
+#typora-source .CodeMirror,
+.cm-s-typora-default {
+  font-family: var(--cs-font-mono);
+  color: var(--cs-text);
+  background: transparent;
+}
+#typora-source .CodeMirror-lines {
+  max-width: calc(var(--cs-measure) + 2 * var(--cs-gutter));
+}
+.cm-s-typora-default { line-height: var(--cs-leading); font-size: 0.9375rem; }
+.cm-s-typora-default .cm-header { color: var(--cs-ink); font-weight: 600; }
+.cm-s-typora-default .cm-link,
+.cm-s-typora-default .cm-url { color: var(--cs-accent-text); }
+.cm-s-typora-default .cm-comment { color: var(--cs-syn-builtin); }
+.cm-s-typora-default .cm-quote { color: var(--cs-syn-string); }
+.cm-s-typora-default .cm-meta,
+.cm-s-typora-default .cm-formatting { color: var(--cs-ink-4); }
+.cm-s-typora-default .cm-strong { font-weight: 600; }
+.CodeMirror.cm-s-typora-default div.CodeMirror-cursor { border-left: 2px solid var(--cs-caret); }
+.cm-s-typora-default .CodeMirror-activeline-background { background: var(--cs-hover); }
+#typora-source .CodeMirror-gutter-wrapper { font-family: var(--cs-font-mono); }
+#typora-source .CodeMirror-gutters { border-right: 0; }
+
+
+/* --------------------------------------------------------------------------
+   13. App chrome the theme may control
+   Most colours already flow through Typora's variables (see entry files);
+   the rules below refine shape, spacing and states.
+   -------------------------------------------------------------------------- */
+
+/* Sidebar: file tree, file list, outline */
+#typora-sidebar { font-family: var(--cs-font-sans); }
+.mac-seamless-mode #typora-sidebar { background-color: var(--side-bar-bg-color); }
+.sidebar-tabs { font-size: 0.8125rem; border-bottom: none; }
+.sidebar-footer { font-size: 0.75rem; }
+
+.file-tree-node.active > .file-node-background {
+  border-left-width: 2px;
+  background-color: var(--active-file-bg-color);
+}
+.file-node-content { font-size: 0.8125rem; }
+.file-node-content:hover .file-node-icon,
+.file-node-content:hover .file-node-open-state { visibility: visible; }
+.file-list-item { border-bottom: var(--window-border); }
+.file-list-item.active { background: var(--active-file-bg-color); }
+
+.outline-item { border-radius: var(--cs-radius); font-size: 0.8125rem; }
+.outline-label { text-decoration: none; }
+.outline-label:hover { text-decoration: none; color: var(--cs-ink); }
+.outline-item-active > .outline-item .outline-label,
+.outline-active { color: var(--cs-accent-text); }
+.outline-content strong { font-weight: 400; }
+
+/* Search / replace panel */
+#md-searchpanel {
+  font-family: var(--cs-font-sans);
+  background: var(--cs-sidebar);
+  border-bottom: var(--window-border);
+  box-shadow: 0 2px 10px var(--cs-shade);
+}
+#md-searchpanel input {
+  color: var(--cs-ink);
+  background: var(--cs-paper);
+  border: 1px solid var(--cs-line-strong);
+  border-radius: var(--cs-radius);
+}
+#md-searchpanel input:focus { border-color: var(--cs-accent-text); outline: 0; }
+#md-searchpanel .btn:not(.close-btn):hover { box-shadow: none; }
+.searchpanel-search-option-btn { border-radius: var(--cs-radius); }
+#searchpanel-msg {
+  color: var(--cs-ink-2);
+  background: var(--cs-surface-2);
+  border-radius: var(--cs-radius);
+}
+
+/* Quick open */
+#typora-quick-open {
+  font-family: var(--cs-font-sans);
+  border: 1px solid var(--cs-line-strong);
+  border-radius: var(--cs-radius-lg);
+  box-shadow: 0 12px 32px var(--cs-shade);
+}
+#typora-quick-open-input input {
+  color: var(--cs-ink);
+  background: var(--cs-paper);
+  border: 1px solid var(--cs-line-strong);
+  border-radius: var(--cs-radius);
+  box-shadow: none;
+}
+#typora-quick-open-input input:focus { border-color: var(--cs-accent-text); }
+.typora-quick-open-item { border-radius: var(--cs-radius); }
+
+/* Notification bar */
+#md-notification {
+  font-family: var(--cs-font-sans);
+  color: var(--cs-text);
+  background: var(--cs-surface);
+  border-bottom: var(--window-border);
+}
+#md-notification .btn { border: 0; }
+
+/* Menus, popovers and dialogs */
+.dropdown-menu,
+.auto-suggest-container,
+.popover {
+  font-family: var(--cs-font-sans);
+  color: var(--cs-text);
+  background-color: var(--bg-color);
+  border: 1px solid var(--cs-line-strong);
+  border-radius: var(--cs-radius-lg);
+  box-shadow: 0 8px 28px var(--cs-shade);
+}
+.dropdown-menu > li > a { border-radius: var(--cs-radius); }
+.dropdown-menu .divider { border-color: var(--cs-line); opacity: 1; }
+.modal-content {
+  font-family: var(--cs-font-sans);
+  color: var(--cs-text);
+  background-color: var(--bg-color);
+  border: 1px solid var(--cs-line-strong);
+  border-radius: var(--cs-radius-lg);
+  box-shadow: 0 20px 56px var(--cs-shade);
+}
+.modal-header, .modal-footer { border-color: var(--cs-line); }
+.modal-title { font-weight: 600; }
+
+/* Preferences window */
+.ty-preferences .window-content { background-color: var(--cs-sidebar); }
+.ty-preferences .nav-group-item.active {
+  color: var(--cs-paper);
+  background: var(--cs-ink-3);
+}
+
+/* Buttons and inputs */
+.btn, button { border-radius: var(--cs-radius); }
+.btn-default {
+  color: var(--cs-ink);
+  background: var(--cs-paper);
+  border-color: var(--cs-line-strong);
+}
+.btn-default:hover, .btn-default:focus, .btn-default:active {
+  color: var(--cs-ink);
+  background: var(--cs-hover);
+  border-color: var(--cs-line-strong);
+}
+body .btn-primary {
+  color: var(--primary-btn-text-color);
+  background: var(--cs-ink);
+  border-color: var(--cs-ink);
+}
+body .btn-primary:hover, body .btn-primary:focus, body .btn-primary:active {
+  color: var(--primary-btn-text-color);
+  background: var(--cs-ink-2);
+  border-color: var(--cs-ink-2);
+}
+.form-control, input[type="text"], input[type="search"], input[type="number"] {
+  color: var(--cs-ink);
+  background-color: var(--cs-paper);
+  border: 1px solid var(--cs-line-strong);
+  border-radius: var(--cs-radius);
+  box-shadow: none;
+}
+.form-control:focus, input:focus {
+  border-color: var(--cs-accent-text);
+  box-shadow: 0 0 0 2px var(--cs-accent-soft);
+  outline: 0;
+}
+
+/* Scrollbars
+   Every scroller (the editing surface, sidebar, code blocks, wide tables,
+   menus) gets the same thin rounded thumb on a transparent track, coloured
+   from the --cs-scrollbar tokens so it follows the light and dark palettes.
+   Styling ::-webkit-scrollbar replaces the native bar, which macOS would draw
+   in neutral grey (on a grey track when "Show scroll bars" is set to Always).
+   The 2px transparent border is what makes the 10px bar a 6px thumb. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+  background: transparent;
+}
+::-webkit-scrollbar:hover { background-color: var(--cs-hover); }
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb:vertical,
+::-webkit-scrollbar-thumb:horizontal,
+::-webkit-scrollbar-thumb:vertical:active,
+::-webkit-scrollbar-thumb:horizontal:active {
+  border: 2px solid transparent;
+  border-radius: 5px;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:vertical { min-height: 40px; }
+::-webkit-scrollbar-thumb:horizontal { min-width: 40px; }
+::-webkit-scrollbar-thumb { background-color: var(--cs-scrollbar); }
+::-webkit-scrollbar-thumb:hover { background-color: var(--cs-scrollbar-hover); }
+::-webkit-scrollbar-thumb:active { background-color: var(--cs-scrollbar-active); }
+
+
+/* --------------------------------------------------------------------------
+   14. Narrow windows
+   The column simply gets narrower (the gutter drops to 1.25rem above); only
+   the type scale and the TOC indents are trimmed.
+   -------------------------------------------------------------------------- */
+@media screen and (max-width: 40rem) {
+  #write { padding-top: 1.5rem; }
+  #write h1 { font-size: 1.875rem; }
+  #write h2 { font-size: 1.5rem; }
+  #write h3 { font-size: 1.25rem; }
+  #write blockquote { padding-left: 1rem; }
+  .md-toc { padding: 0.75rem 1rem; }
+  .md-toc-h2 .md-toc-inner { margin-left: 1em; }
+  .md-toc-h3 .md-toc-inner { margin-left: 2em; }
+  .md-toc-h4 .md-toc-inner { margin-left: 3em; }
+  .md-toc-h5 .md-toc-inner { margin-left: 4em; }
+  .md-toc-h6 .md-toc-inner { margin-left: 5em; }
+}
+
+
+/* --------------------------------------------------------------------------
+   15. Print and PDF
+   -------------------------------------------------------------------------- */
+@media print {
+  html { font-size: 14px; }
+  #write {
+    max-width: none;
+    padding: 0;
+  }
+  #write h1, #write h2, #write h3, #write h4, #write h5, #write h6 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  #write .md-fences,
+  #write blockquote,
+  #write figure,
+  .md-toc {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  #write .md-fences { white-space: pre-wrap; }
+  #write table { width: 100%; font-size: 0.875rem; }
+  #write table th, #write table td { min-width: 0; }
+  #write a { text-decoration: underline; text-decoration-color: currentColor; }
+}
