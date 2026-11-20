@@ -5,6 +5,8 @@
 
 A [Typora](https://typora.io) theme in the visual language of Cursor's website: warm paper background, ink-colored text and a restrained ember orange. It starts from Typora's bundled GitHub light theme, keeps its mature typographic skeleton and native editing feel, and re-implements only the look: colors, type hierarchy and display rules. A matching dark variant, **Cursor Style Dark**, is included. Designed for technical writing and long-form reading.
 
+Listed in the [Typora Theme Gallery](https://theme.typora.io/theme/cursor-style/).
+
 > A community work, not affiliated with or endorsed by Anysphere / Cursor. "Cursor" in the name only identifies the style that inspired the theme, and is a trademark of its owner. The dark variant is derived from the same design tokens; it is not an official Cursor palette.
 
 ![Cursor Style, light and dark](gallery/media/theme/cursor-style/cursor-style-overview.png)
